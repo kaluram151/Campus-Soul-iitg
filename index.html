@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusSoul - IIT Guwahati Dating Platform</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    
+    <!-- ==================== LOGIN PAGE ==================== -->
+    <div id="loginPage" class="page active">
+        <div class="login-container">
+            <div class="login-left">
+                <div class="hero-content">
+                    <h1 class="hero-title">Campus Soul 💕</h1>
+                    <p class="hero-tagline">IIT Guwahati</p>
+                    <p class="hero-subtitle">Find Your Perfect Study Partner & More</p>
+                    <div class="features-list">
+                        <div class="feature-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>IIT Guwahati Students Only</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-book"></i>
+                            <span>Find Study Partners</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-heart"></i>
+                            <span>Make Campus Connections</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="login-right">
+                <div class="login-box">
+                    <h2>Welcome to <br> Campus Soul 💕</h2>
+                    <p class="login-subtitle">Sign in with your IIT Guwahati email</p>
+                    
+                    <form id="loginForm" onsubmit="sendOTP(event)">
+                        <div class="form-group">
+                            <label><i class="fas fa-envelope"></i> IIT Guwahati Email</label>
+                            <input type="email" id="emailInput" placeholder="yourname@iitg.ac.in" required>
+                            <small class="form-hint">Only @iitg.ac.in emails are allowed</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fas fa-paper-plane"></i> Send OTP
+                        </button>
+                    </form>
+                    
+                    <div class="security-note">
+                        <i class="fas fa-lock"></i>
+                        <span>Secure & Private - Your data is safe with us</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== OTP VERIFICATION PAGE ==================== -->
+    <div id="otpPage" class="page">
+        <div class="otp-container">
+            <div class="otp-box">
+                <button class="btn-back" onclick="backToLogin()">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                
+                <div class="otp-icon">
+                    <i class="fas fa-envelope-open-text"></i>
+                </div>
+                
+                <h2>Verify Your Email</h2>
+                <p class="otp-subtitle">We've sent a 6-digit OTP to<br><strong id="otpEmailDisplay"></strong></p>
+                
+                <form id="otpForm" onsubmit="verifyOTP(event)">
+                    <div class="otp-inputs">
+                        <input type="text" maxlength="1" class="otp-box-input" id="otp1" oninput="moveToNext(this, 'otp2')">
+                        <input type="text" maxlength="1" class="otp-box-input" id="otp2" oninput="moveToNext(this, 'otp3')" onkeydown="moveToPrev(event, 'otp1')">
+                        <input type="text" maxlength="1" class="otp-box-input" id="otp3" oninput="moveToNext(this, 'otp4')" onkeydown="moveToPrev(event, 'otp2')">
+                        <input type="text" maxlength="1" class="otp-box-input" id="otp4" oninput="moveToNext(this, 'otp5')" onkeydown="moveToPrev(event, 'otp3')">
+                        <input type="text" maxlength="1" class="otp-box-input" id="otp5" oninput="moveToNext(this, 'otp6')" onkeydown="moveToPrev(event, 'otp4')">
+                        <input type="text" maxlength="1" class="otp-box-input" id="otp6" onkeydown="moveToPrev(event, 'otp5')">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-check"></i> Verify OTP
+                    </button>
+                </form>
+                
+                <p class="resend-text">
+                    Didn't receive OTP? 
+                    <button class="btn-link" onclick="resendOTP()">Resend OTP</button>
+                </p>
+                
+                <div class="otp-timer" id="otpTimer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== REGISTRATION PAGE ==================== -->
+    <div id="registrationPage" class="page">
+        <div class="registration-container">
+            <div class="registration-header">
+                <h1>Complete Your Profile</h1>
+                <p>Tell us about yourself to get started</p>
+                <div class="progress-container">
+                    <div class="progress-bar" id="regProgressBar" style="width: 0%"></div>
+                </div>
+                <span class="progress-text" id="regProgressText">0% Complete</span>
+            </div>
+            
+            <form id="registrationForm" onsubmit="completeRegistration(event)">
+                <div class="registration-content">
+                    
+                    <!-- Step 1: Basic Info -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-user-circle"></i> Basic Information</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Full Name *</label>
+                                <input type="text" id="userName" placeholder="Enter your full name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Gender *</label>
+                                <select id="userGender" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date of Birth *</label>
+                                <input type="date" id="userDOB" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="tel" id="userPhone" placeholder="Optional" maxlength="10">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Academic Info -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-graduation-cap"></i> Academic Details</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Discipline *</label>
+                                <select id="userDiscipline" required>
+                                    <option value="">Select Discipline</option>
+                                    <option value="BTech">B.Tech</option>
+                                    <option value="MTech">M.Tech</option>
+                                    <option value="MSc">M.Sc</option>
+                                    <option value="PhD">PhD</option>
+                                    <option value="MA">MA</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Year *</label>
+                                <select id="userYear" required>
+                                    <option value="">Select Year</option>
+                                    <option value="1st Year">1st Year</option>
+                                    <option value="2nd Year">2nd Year</option>
+                                    <option value="3rd Year">3rd Year</option>
+                                    <option value="4th Year">4th Year</option>
+                                    <option value="5th Year">5th Year</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Branch/Department *</label>
+                            <select id="userBranch" required>
+                                <option value="">Select Branch</option>
+                                <option value="CSE">Computer Science & Engineering</option>
+                                <option value="EEE">Electrical & Electronics Engineering</option>
+                                <option value="ME">Mechanical Engineering</option>
+                                <option value="CE">Civil Engineering</option>
+                                <option value="ECE">Electronics & Communication Engineering</option>
+                                <option value="CHE">Chemical Engineering</option>
+                                <option value="BT">Biotechnology</option>
+                                <option value="MATHS">Mathematics & Computing</option>
+                                <option value="PHYSICS">Engineering Physics</option>
+                                <option value="CHEM">Chemistry</option>
+                                <option value="HSS">Humanities & Social Sciences</option>
+                                <option value="DESIGN">Design</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: About You -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-comment-alt"></i> About You</h3>
+                        
+                        <div class="form-group">
+                            <label>Bio *</label>
+                            <textarea id="userBio" rows="4" placeholder="Tell us about yourself, your interests, what you're looking for..." required></textarea>
+                            <small class="char-counter"><span id="bioCharCount">0</span>/500 characters</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Interests * (Select at least 3)</label>
+                            <div class="interests-grid">
+                                <button type="button" class="interest-chip" data-interest="Coding">💻 Coding</button>
+                                <button type="button" class="interest-chip" data-interest="Math">📐 Mathematics</button>
+                                <button type="button" class="interest-chip" data-interest="Physics">⚛️ Physics</button>
+                                <button type="button" class="interest-chip" data-interest="Chemistry">🧪 Chemistry</button>
+                                <button type="button" class="interest-chip" data-interest="Research">🔬 Research</button>
+                                <button type="button" class="interest-chip" data-interest="GATE">🎯 GATE Prep</button>
+                                <button type="button" class="interest-chip" data-interest="Projects">🚀 Projects</button>
+                                <button type="button" class="interest-chip" data-interest="Sports">⚽ Sports</button>
+                                <button type="button" class="interest-chip" data-interest="Music">🎵 Music</button>
+                                <button type="button" class="interest-chip" data-interest="Art">🎨 Art</button>
+                                <button type="button" class="interest-chip" data-interest="Reading">📚 Reading</button>
+                                <button type="button" class="interest-chip" data-interest="Gaming">🎮 Gaming</button>
+                                <button type="button" class="interest-chip" data-interest="Photography">📷 Photography</button>
+                                <button type="button" class="interest-chip" data-interest="Dance">💃 Dance</button>
+                                <button type="button" class="interest-chip" data-interest="Debate">🗣️ Debate</button>
+                                <button type="button" class="interest-chip" data-interest="Entrepreneurship">💼 Entrepreneurship</button>
+                            </div>
+                            <small class="form-hint" id="interestCount">0 selected (minimum 3 required)</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Study Time Preference *</label>
+                            <div class="time-chips">
+                                <button type="button" class="time-chip" data-time="Morning">🌅 Morning (6AM-12PM)</button>
+                                <button type="button" class="time-chip" data-time="Afternoon">☀️ Afternoon (12PM-5PM)</button>
+                                <button type="button" class="time-chip" data-time="Evening">🌆 Evening (5PM-10PM)</button>
+                                <button type="button" class="time-chip" data-time="Night">🌙 Night (10PM-2AM)</button>
+                                <button type="button" class="time-chip" data-time="Flexible">🔄 Flexible</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Looking For *</label>
+                            <div class="looking-chips">
+                                <button type="button" class="looking-chip" data-looking="Study Partner">📖 Study Partner</button>
+                                <button type="button" class="looking-chip" data-looking="Dating">💕 Dating</button>
+                                <button type="button" class="looking-chip" data-looking="Friends">👥 Friends</button>
+                                <button type="button" class="looking-chip" data-looking="Project Team">🛠️ Project Team</button>
+                                <button type="button" class="looking-chip" data-looking="Research Partner">🔬 Research Partner</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 4: Profile Photos -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-camera"></i> Profile Photos *</h3>
+                        <p class="form-description">Upload at least 3 photos. First photo will be your main profile picture.</p>
+                        
+                        <div class="photo-upload-section">
+                            <div class="main-photo-upload">
+                                <label for="mainPhotoInput" class="upload-label main-upload-label">
+                                    <div class="upload-placeholder" id="mainPhotoPreview">
+                                        <i class="fas fa-camera"></i>
+                                        <span>Click to upload<br>Main Profile Photo</span>
+                                    </div>
+                                </label>
+                                <input type="file" id="mainPhotoInput" accept="image/*" style="display:none" onchange="previewMainPhoto(event)">
+                                <small>Main Profile Photo</small>
+                            </div>
+                            
+                            <div class="additional-photos-grid">
+                                <div class="photo-upload-box">
+                                    <label for="photo2Input" class="upload-label">
+                                        <div class="upload-placeholder" id="photo2Preview">
+                                            <i class="fas fa-plus"></i>
+                                            <span>Photo 2 *</span>
+                                        </div>
+                                    </label>
+                                    <input type="file" id="photo2Input" accept="image/*" style="display:none" onchange="previewPhoto(event, 2)">
+                                </div>
+                                
+                                <div class="photo-upload-box">
+                                    <label for="photo3Input" class="upload-label">
+                                        <div class="upload-placeholder" id="photo3Preview">
+                                            <i class="fas fa-plus"></i>
+                                            <span>Photo 3 *</span>
+                                        </div>
+                                    </label>
+                                    <input type="file" id="photo3Input" accept="image/*" style="display:none" onchange="previewPhoto(event, 3)">
+                                </div>
+                                
+                                <div class="photo-upload-box">
+                                    <label for="photo4Input" class="upload-label">
+                                        <div class="upload-placeholder" id="photo4Preview">
+                                            <i class="fas fa-plus"></i>
+                                            <span>Photo 4</span>
+                                        </div>
+                                    </label>
+                                    <input type="file" id="photo4Input" accept="image/*" style="display:none" onchange="previewPhoto(event, 4)">
+                                </div>
+                                
+                                <div class="photo-upload-box">
+                                    <label for="photo5Input" class="upload-label">
+                                        <div class="upload-placeholder" id="photo5Preview">
+                                            <i class="fas fa-plus"></i>
+                                            <span>Photo 5</span>
+                                        </div>
+                                    </label>
+                                    <input type="file" id="photo5Input" accept="image/*" style="display:none" onchange="previewPhoto(event, 5)">
+                                </div>
+                                
+                                <div class="photo-upload-box">
+                                    <label for="photo6Input" class="upload-label">
+                                        <div class="upload-placeholder" id="photo6Preview">
+                                            <i class="fas fa-plus"></i>
+                                            <span>Photo 6</span>
+                                        </div>
+                                    </label>
+                                    <input type="file" id="photo6Input" accept="image/*" style="display:none" onchange="previewPhoto(event, 6)">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <small class="form-hint photo-count-hint">
+                            <span id="photoCount">0</span> photos uploaded (minimum 3 required)
+                        </small>
+                    </div>
+                    
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <i class="fas fa-check-circle"></i> Complete Profile & Continue
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN WEBSITE ==================== -->
+    <div id="mainWebsite" class="page">
+        <!-- Top Navigation Bar -->
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <h2>🎓 CampusSoul <span class="badge-iitg">IIT Guwahati</span></h2>
+            </div>
+            
+            <div class="navbar-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search students, interests..." id="globalSearch" oninput="searchGlobally(this.value)">
+            </div>
+            
+            <div class="navbar-actions">
+                <button class="icon-btn" onclick="openNotifications()" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge" id="notifBadge">0</span>
+                </button>
+                <button class="icon-btn" onclick="openMessages()" title="Messages">
+                    <i class="fas fa-envelope"></i>
+                    <span class="badge" id="msgBadge">0</span>
+                </button>
+                <div class="profile-dropdown">
+                    <button class="icon-btn profile-btn" onclick="toggleProfileMenu()">
+                        <img src="" alt="Profile" class="profile-avatar" id="navProfileAvatar">
+                    </button>
+                    <div class="dropdown-menu" id="profileDropdown">
+                        <a href="#" onclick="switchView('profile')"><i class="fas fa-user"></i> My Profile</a>
+                        <a href="#" onclick="openSettings()"><i class="fas fa-cog"></i> Settings</a>
+                        <a href="#" onclick="openHelp()"><i class="fas fa-question-circle"></i> Help</a>
+                        <hr>
+                        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="main-layout">
+            <!-- Left Sidebar -->
+            <aside class="sidebar">
+                <ul class="sidebar-menu">
+                    <li class="menu-item active" data-view="discover" onclick="switchView('discover')">
+                        <i class="fas fa-compass"></i>
+                        <span>Discover</span>
+                    </li>
+                    <li class="menu-item" data-view="matches" onclick="switchView('matches')">
+                        <i class="fas fa-heart"></i>
+                        <span>Matches</span>
+                        <span class="menu-badge" id="matchesBadge">0</span>
+                    </li>
+                    <li class="menu-item" data-view="likes" onclick="switchView('likes')">
+                        <i class="fas fa-fire"></i>
+                        <span>Likes</span>
+                        <span class="menu-badge" id="likesBadge">0</span>
+                    </li>
+                    <li class="menu-item" data-view="messages" onclick="switchView('messages')">
+                        <i class="fas fa-comments"></i>
+                        <span>Messages</span>
+                        <span class="menu-badge" id="messagesBadge">0</span>
+                    </li>
+                    <li class="menu-item" data-view="profile" onclick="switchView('profile')">
+                        <i class="fas fa-user"></i>
+                        <span>My Profile</span>
+                    </li>
+                </ul>
+                
+                <div class="sidebar-footer">
+                    <button class="btn btn-secondary btn-block" onclick="openSettings()">
+                        <i class="fas fa-cog"></i> Settings
+                    </button>
+                </div>
+            </aside>
+            
+            <!-- Main Content Area -->
+            <main class="main-content">
+                
+                <!-- DISCOVER VIEW -->
+                <section id="discoverView" class="view active">
+                    <div class="view-header">
+                        <h2>Discover Students</h2>
+                        <button class="btn btn-secondary" onclick="openFilters()">
+                            <i class="fas fa-filter"></i> Filters
+                        </button>
+                    </div>
+                    
+                    <div class="discover-layout">
+                        <div class="card-section">
+                            <div class="match-score-display" id="matchScoreDisplay"></div>
+                            <div class="card-stack" id="cardStack"></div>
+                            <div class="action-buttons-horizontal">
+                                <button class="btn-action btn-undo" onclick="undoSwipe()" title="Undo">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                                <button class="btn-action btn-pass" onclick="swipeLeft()" title="Pass">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <button class="btn-action btn-super" onclick="superLike()" title="Super Like">
+                                    <i class="fas fa-star"></i>
+                                    <small id="superLikesCount">5</small>
+                                </button>
+                                <button class="btn-action btn-like" onclick="swipeRight()" title="Like">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                                <button class="btn-action btn-info" onclick="viewCurrentProfile()" title="View Profile">
+                                    <i class="fas fa-info"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-panel">
+                            <h3>Your Stats Today</h3>
+                            <div class="stat-card">
+                                <i class="fas fa-eye"></i>
+                                <div>
+                                    <span class="stat-value" id="profileViewsStat">0</span>
+                                    <span class="stat-label">Profile Views</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-heart"></i>
+                                <div>
+                                    <span class="stat-value" id="matchesStat">0</span>
+                                    <span class="stat-label">Total Matches</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-fire"></i>
+                                <div>
+                                    <span class="stat-value" id="likesStat">0</span>
+                                    <span class="stat-label">Likes Received</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- MATCHES VIEW -->
+                <section id="matchesView" class="view">
+                    <div class="view-header">
+                        <h2>My Matches</h2>
+                        <div class="filter-tabs">
+                            <button class="filter-tab active" onclick="filterMatchesBy('all')">All</button>
+                            <button class="filter-tab" onclick="filterMatchesBy('unread')">Unread</button>
+                            <button class="filter-tab" onclick="filterMatchesBy('super')">Super Likes</button>
+                        </div>
+                    </div>
+                    <div class="matches-grid" id="matchesGrid"></div>
+                </section>
+                
+                <!-- LIKES VIEW -->
+                <section id="likesView" class="view">
+                    <div class="view-header">
+                        <h2>Who Likes You</h2>
+                    </div>
+                    <div class="likes-grid" id="likesGrid"></div>
+                </section>
+                
+                <!-- MESSAGES VIEW -->
+                <section id="messagesView" class="view">
+                    <div class="messages-layout">
+                        <div class="conversations-list" id="conversationsList"></div>
+                        <div class="chat-window" id="chatWindow">
+                            <div class="empty-chat">
+                                <i class="fas fa-comments"></i>
+                                <p>Select a conversation to start chatting</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- PROFILE VIEW -->
+                <section id="profileView" class="view">
+                    <div class="profile-container" id="myProfileContainer"></div>
+                </section>
+                
+            </main>
+            
+            <!-- Right Sidebar (Online Users) -->
+            <aside class="right-sidebar">
+                <h3>Online Now</h3>
+                <div class="online-users-list" id="onlineUsersList"></div>
+                
+                <div class="sidebar-widget">
+                    <h4>Quick Links</h4>
+                    <ul class="quick-links">
+                        <li><a href="#" onclick="showSafetyTips()"><i class="fas fa-shield-alt"></i> Safety Tips</a></li>
+                        <li><a href="#" onclick="showSuccessStories()"><i class="fas fa-heart"></i> Success Stories</a></li>
+                        <li><a href="#" onclick="reportBug()"><i class="fas fa-bug"></i> Report Issue</a></li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </div>
+    
+    <!-- MODALS -->
+    
+    <!-- Profile Modal -->
+    <div id="profileModal" class="modal">
+        <div class="modal-overlay" onclick="closeProfileModal()"></div>
+        <div class="modal-content modal-large">
+            <button class="modal-close" onclick="closeProfileModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="profileModalContent"></div>
+        </div>
+    </div>
+    
+    <!-- Chat Modal -->
+    <div id="chatModal" class="modal">
+        <div class="modal-overlay" onclick="closeChatModal()"></div>
+        <div class="modal-content modal-chat">
+            <div class="chat-header">
+                <div class="chat-user-info">
+                    <img src="" alt="" class="chat-avatar" id="chatAvatar">
+                    <div>
+                        <h4 id="chatUserName"></h4>
+                        <small id="chatUserStatus"></small>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="icon-btn" onclick="initiateAudioCall()" title="Audio Call">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                    <button class="icon-btn" onclick="initiateVideoCall()" title="Video Call">
+                        <i class="fas fa-video"></i>
+                    </button>
+                    <button class="icon-btn" onclick="closeChatModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input-box">
+                <button class="icon-btn" onclick="attachFile()">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                <input type="text" id="chatInput" placeholder="Type a message..." onkeypress="handleChatKeypress(event)">
+                <button class="icon-btn" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Call Modal -->
+    <div id="callModal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content modal-call">
+            <div id="callContent"></div>
+        </div>
+    </div>
+    
+    <!-- Filters Modal -->
+    <div id="filtersModal" class="modal">
+        <div class="modal-overlay" onclick="closeFilters()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeFilters()">
+                <i class="fas fa-times"></i>
+            </button>
+            <h2>Advanced Filters</h2>
+            <div class="filters-form">
+                <div class="form-group">
+                    <label>Distance (km): <span id="distanceValue">10</span></label>
+                    <input type="range" id="filterDistance" min="1" max="50" value="10" oninput="updateDistanceValue(this.value)">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Min Age</label>
+                        <input type="number" id="filterAgeMin" min="18" max="35" value="18">
+                    </div>
+                    <div class="form-group">
+                        <label>Max Age</label>
+                        <input type="number" id="filterAgeMax" min="18" max="35" value="30">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Discipline</label>
+                    <select id="filterDiscipline">
+                        <option value="">All Disciplines</option>
+                        <option value="BTech">B.Tech</option>
+                        <option value="MTech">M.Tech</option>
+                        <option value="MSc">M.Sc</option>
+                        <option value="PhD">PhD</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Branch</label>
+                    <select id="filterBranch">
+                        <option value="">All Branches</option>
+                        <option value="CSE">Computer Science</option>
+                        <option value="EEE">Electrical</option>
+                        <option value="ME">Mechanical</option>
+                        <option value="CE">Civil</option>
+                        <option value="ECE">Electronics</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Year</label>
+                    <select id="filterYear">
+                        <option value="">All Years</option>
+                        <option value="1st Year">1st Year</option>
+                        <option value="2nd Year">2nd Year</option>
+                        <option value="3rd Year">3rd Year</option>
+                        <option value="4th Year">4th Year</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary btn-block" onclick="applyFilters()">Apply Filters</button>
+                <button class="btn btn-secondary btn-block" onclick="resetFilters()">Reset</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification Container -->
+    <div id="toastContainer"></div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
