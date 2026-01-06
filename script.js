@@ -1843,7 +1843,6 @@ function switchSettingsTab(event, tabName) {
     }
 }
 
-
 function getAccountSettingsHTML() {
     return `
         <div class="settings-section">
@@ -1927,17 +1926,26 @@ function getAccountSettingsHTML() {
 }
 
 function getPrivacySettingsHTML() {
-    const settings = currentUser.privacySettings || {
-        showAge: true,
-        showBranch: true,
-        showPhone: false,
-        showOnlineStatus: true,
-        allowMessages: true
-    };
+    // Initialize privacy settings if not exist
+    if (!currentUser.privacySettings) {
+        currentUser.privacySettings = {
+            showAge: true,
+            showBranch: true,
+            showPhone: false,
+            showOnlineStatus: true,
+            allowMessages: 'everyone'
+        };
+        saveToLocalStorage();
+    }
+    
+    const settings = currentUser.privacySettings;
     
     return `
         <div class="settings-section">
             <h3><i class="fas fa-eye"></i> Profile Visibility</h3>
+            <p style="color:var(--text-secondary); margin-bottom:20px;">
+                Control what information is visible on your profile
+            </p>
             
             <div class="setting-item">
                 <div class="setting-info">
@@ -1946,7 +1954,7 @@ function getPrivacySettingsHTML() {
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" ${settings.showAge ? 'checked' : ''} 
-                           onchange="updatePrivacySetting('showAge', this.checked)">
+                           onchange="togglePrivacy('showAge', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
@@ -1958,7 +1966,7 @@ function getPrivacySettingsHTML() {
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" ${settings.showBranch ? 'checked' : ''} 
-                           onchange="updatePrivacySetting('showBranch', this.checked)">
+                           onchange="togglePrivacy('showBranch', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
@@ -1970,7 +1978,7 @@ function getPrivacySettingsHTML() {
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" ${settings.showPhone ? 'checked' : ''} 
-                           onchange="updatePrivacySetting('showPhone', this.checked)">
+                           onchange="togglePrivacy('showPhone', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
@@ -1982,21 +1990,21 @@ function getPrivacySettingsHTML() {
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" ${settings.showOnlineStatus ? 'checked' : ''} 
-                           onchange="updatePrivacySetting('showOnlineStatus', this.checked)">
+                           onchange="togglePrivacy('showOnlineStatus', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
         </div>
         
         <div class="settings-section">
-            <h3><i class="fas fa-user-shield"></i> Who Can...</h3>
+            <h3><i class="fas fa-user-shield"></i> Who Can Message You</h3>
             
             <div class="setting-item">
                 <div class="setting-info">
-                    <strong>Send You Messages</strong>
-                    <p>Control who can start conversations</p>
+                    <strong>Message Permissions</strong>
+                    <p>Control who can start conversations with you</p>
                 </div>
-                <select class="setting-select" onchange="updatePrivacySetting('allowMessages', this.value)">
+                <select class="setting-select" onchange="changeMessagePermission(this.value)">
                     <option value="everyone" ${settings.allowMessages === 'everyone' ? 'selected' : ''}>
                         Everyone
                     </option>
@@ -2012,23 +2020,36 @@ function getPrivacySettingsHTML() {
         
         <div class="settings-section">
             <h3><i class="fas fa-ban"></i> Blocked Users</h3>
-            <p style="color:var(--text-secondary);">You haven't blocked anyone yet.</p>
+            <p style="color:var(--text-secondary);">
+                ${appState.blockedUsers && appState.blockedUsers.length > 0 
+                    ? `You have blocked ${appState.blockedUsers.length} user(s)` 
+                    : 'You haven\'t blocked anyone yet.'}
+            </p>
         </div>
     `;
 }
 
 function getNotificationSettingsHTML() {
-    const settings = currentUser.notificationSettings || {
-        newMatches: true,
-        newMessages: true,
-        likes: true,
-        superLikes: true,
-        email: true
-    };
+    // Initialize notification settings
+    if (!currentUser.notificationSettings) {
+        currentUser.notificationSettings = {
+            newMatches: true,
+            newMessages: true,
+            likes: true,
+            superLikes: true,
+            emailNotifications: true
+        };
+        saveToLocalStorage();
+    }
+    
+    const settings = currentUser.notificationSettings;
     
     return `
         <div class="settings-section">
             <h3><i class="fas fa-bell"></i> Push Notifications</h3>
+            <p style="color:var(--text-secondary); margin-bottom:20px;">
+                Manage your notification preferences
+            </p>
             
             <div class="setting-item">
                 <div class="setting-info">
@@ -2037,7 +2058,7 @@ function getNotificationSettingsHTML() {
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" ${settings.newMatches ? 'checked' : ''} 
-                           onchange="updateNotificationSetting('newMatches', this.checked)">
+                           onchange="toggleNotification('newMatches', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
@@ -2049,7 +2070,7 @@ function getNotificationSettingsHTML() {
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" ${settings.newMessages ? 'checked' : ''} 
-                           onchange="updateNotificationSetting('newMessages', this.checked)">
+                           onchange="toggleNotification('newMessages', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
@@ -2061,7 +2082,7 @@ function getNotificationSettingsHTML() {
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" ${settings.likes ? 'checked' : ''} 
-                           onchange="updateNotificationSetting('likes', this.checked)">
+                           onchange="toggleNotification('likes', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
@@ -2073,7 +2094,7 @@ function getNotificationSettingsHTML() {
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" ${settings.superLikes ? 'checked' : ''} 
-                           onchange="updateNotificationSetting('superLikes', this.checked)">
+                           onchange="toggleNotification('superLikes', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
@@ -2084,18 +2105,25 @@ function getNotificationSettingsHTML() {
             
             <div class="setting-item">
                 <div class="setting-info">
-                    <strong>Email Updates</strong>
-                    <p>Receive weekly digest emails</p>
+                    <strong>Weekly Digest</strong>
+                    <p>Receive weekly summary emails about your activity</p>
                 </div>
                 <label class="toggle-switch">
-                    <input type="checkbox" ${settings.email ? 'checked' : ''} 
-                           onchange="updateNotificationSetting('email', this.checked)">
+                    <input type="checkbox" ${settings.emailNotifications ? 'checked' : ''} 
+                           onchange="toggleNotification('emailNotifications', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
         </div>
+        
+        <div class="settings-section">
+            <button class="btn btn-secondary btn-block" onclick="testNotification()">
+                <i class="fas fa-bell"></i> Test Notification
+            </button>
+        </div>
     `;
 }
+
 
 function getPreferencesSettingsHTML() {
     return `
@@ -2105,48 +2133,68 @@ function getPreferencesSettingsHTML() {
             <div class="setting-item">
                 <div class="setting-info">
                     <strong>Show Me</strong>
-                    <p>Who would you like to see?</p>
+                    <p>Who would you like to see in discovery</p>
                 </div>
-                <select class="setting-select" onchange="updatePreference('gender', this.value)">
-                    <option value="Everyone">Everyone</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
+                <select class="setting-select" onchange="changeGenderPreference(this.value)">
+                    <option value="Everyone" ${appState.filters.gender === 'Everyone' ? 'selected' : ''}>
+                        Everyone
+                    </option>
+                    <option value="Male" ${appState.filters.gender === 'Male' ? 'selected' : ''}>
+                        Male
+                    </option>
+                    <option value="Female" ${appState.filters.gender === 'Female' ? 'selected' : ''}>
+                        Female
+                    </option>
                 </select>
             </div>
             
             <div class="setting-item">
                 <div class="setting-info">
-                    <strong>Distance</strong>
-                    <p>Maximum distance: ${appState.filters.distance} km</p>
+                    <strong>Maximum Distance</strong>
+                    <p id="distanceValue">Show profiles within ${appState.filters.distance} km</p>
                 </div>
-                <input type="range" min="1" max="50" value="${appState.filters.distance}" 
-                       class="setting-range" oninput="updateDistance(this.value)">
             </div>
+            <input type="range" min="1" max="50" value="${appState.filters.distance}" 
+                   class="setting-range" 
+                   oninput="updateDistanceDisplay(this.value)"
+                   onchange="updateDistance(this.value)"
+                   style="width:100%; margin-top:10px;">
             
-            <div class="setting-item">
+            <div class="setting-item" style="margin-top:20px;">
                 <div class="setting-info">
                     <strong>Age Range</strong>
-                    <p>${appState.filters.ageMin} - ${appState.filters.ageMax} years</p>
+                    <p id="ageRangeValue">${appState.filters.ageMin} - ${appState.filters.ageMax} years</p>
                 </div>
-                <div style="display:flex; gap:10px;">
-                    <input type="number" min="18" max="35" value="${appState.filters.ageMin}" 
-                           class="setting-input" onchange="updateAgeMin(this.value)">
-                    <span style="align-self:center;">to</span>
-                    <input type="number" min="18" max="35" value="${appState.filters.ageMax}" 
-                           class="setting-input" onchange="updateAgeMax(this.value)">
-                </div>
+            </div>
+            <div style="display:flex; gap:15px; align-items:center; margin-top:10px;">
+                <input type="number" min="18" max="35" value="${appState.filters.ageMin}" 
+                       class="setting-input" 
+                       onchange="updateAgeMin(this.value)"
+                       placeholder="Min">
+                <span style="color:var(--text-secondary);">to</span>
+                <input type="number" min="18" max="35" value="${appState.filters.ageMax}" 
+                       class="setting-input" 
+                       onchange="updateAgeMax(this.value)"
+                       placeholder="Max">
             </div>
         </div>
         
         <div class="settings-section">
-            <h3><i class="fas fa-filter"></i> Quick Filters</h3>
-            
-            <button class="btn btn-secondary btn-block" onclick="openFilters()">
-                <i class="fas fa-sliders-h"></i> Advanced Filters
+            <h3><i class="fas fa-filter"></i> Advanced Filters</h3>
+            <button class="btn btn-primary btn-block" onclick="closeSettings(); openFilters();">
+                <i class="fas fa-sliders-h"></i> Open Advanced Filters
+            </button>
+        </div>
+        
+        <div class="settings-section">
+            <h3><i class="fas fa-sync-alt"></i> Reset Preferences</h3>
+            <button class="btn btn-secondary btn-block" onclick="resetPreferences()">
+                <i class="fas fa-undo"></i> Reset to Default
             </button>
         </div>
     `;
 }
+
 
 function getAboutSettingsHTML() {
     return `
@@ -2544,8 +2592,334 @@ setInterval(() => {
         showToast('Super Likes refilled! ⭐', 'success');
     }
 }, 60000);
+// ==================== SETTINGS ACTION FUNCTIONS ====================
 
-console.log('✅ CampusSoul - IIT Guwahati Edition Ready!');
-console.log('🎓 All features loaded!');
+// Privacy toggles
+function togglePrivacy(setting, value) {
+    if (!currentUser.privacySettings) {
+        currentUser.privacySettings = {};
+    }
+    currentUser.privacySettings[setting] = value;
+    saveToLocalStorage();
+    
+    const settingNames = {
+        showAge: 'Age visibility',
+        showBranch: 'Branch visibility',
+        showPhone: 'Phone visibility',
+        showOnlineStatus: 'Online status'
+    };
+    
+    showToast(`✅ ${settingNames[setting]} ${value ? 'enabled' : 'disabled'}`, 'success');
+    console.log('Privacy setting updated:', setting, value);
+}
+
+function changeMessagePermission(value) {
+    if (!currentUser.privacySettings) {
+        currentUser.privacySettings = {};
+    }
+    currentUser.privacySettings.allowMessages = value;
+    saveToLocalStorage();
+    
+    const messages = {
+        everyone: 'Everyone can message you',
+        matches: 'Only matches can message you',
+        none: 'Messaging disabled'
+    };
+    
+    showToast(`✅ ${messages[value]}`, 'success');
+}
+
+// Notification toggles
+function toggleNotification(setting, value) {
+    if (!currentUser.notificationSettings) {
+        currentUser.notificationSettings = {};
+    }
+    currentUser.notificationSettings[setting] = value;
+    saveToLocalStorage();
+    
+    const settingNames = {
+        newMatches: 'New match notifications',
+        newMessages: 'Message notifications',
+        likes: 'Like notifications',
+        superLikes: 'Super like notifications',
+        emailNotifications: 'Email notifications'
+    };
+    
+    showToast(`✅ ${settingNames[setting]} ${value ? 'enabled' : 'disabled'}`, 'success');
+}
+
+function testNotification() {
+    showToast('🔔 This is a test notification!', 'info');
+    setTimeout(() => {
+        showToast('💕 You have a new match!', 'success');
+    }, 1500);
+}
+
+// Preference updates
+function changeGenderPreference(value) {
+    appState.filters.gender = value;
+    saveToLocalStorage();
+    applyCurrentFilters();
+    showToast(`✅ Showing ${value === 'Everyone' ? 'everyone' : value + ' profiles'}`, 'success');
+}
+
+function updateDistanceDisplay(value) {
+    const display = document.getElementById('distanceValue');
+    if (display) {
+        display.textContent = `Show profiles within ${value} km`;
+    }
+}
+
+function updateDistance(value) {
+    appState.filters.distance = parseInt(value);
+    saveToLocalStorage();
+    applyCurrentFilters();
+    showToast(`✅ Maximum distance set to ${value} km`, 'success');
+}
+
+function updateAgeMin(value) {
+    const min = parseInt(value);
+    if (min >= 18 && min < appState.filters.ageMax) {
+        appState.filters.ageMin = min;
+        saveToLocalStorage();
+        applyCurrentFilters();
+        updateAgeRangeDisplay();
+        showToast(`✅ Minimum age set to ${min}`, 'success');
+    } else {
+        showToast('❌ Invalid age range', 'error');
+    }
+}
+
+function updateAgeMax(value) {
+    const max = parseInt(value);
+    if (max <= 35 && max > appState.filters.ageMin) {
+        appState.filters.ageMax = max;
+        saveToLocalStorage();
+        applyCurrentFilters();
+        updateAgeRangeDisplay();
+        showToast(`✅ Maximum age set to ${max}`, 'success');
+    } else {
+        showToast('❌ Invalid age range', 'error');
+    }
+}
+
+function updateAgeRangeDisplay() {
+    const display = document.getElementById('ageRangeValue');
+    if (display) {
+        display.textContent = `${appState.filters.ageMin} - ${appState.filters.ageMax} years`;
+    }
+}
+
+function resetPreferences() {
+    if (confirm('Reset all discovery preferences to default?')) {
+        appState.filters = {
+            gender: 'Everyone',
+            discipline: 'All',
+            branch: 'All',
+            year: 'All',
+            interests: [],
+            distance: 10,
+            ageMin: 18,
+            ageMax: 28
+        };
+        saveToLocalStorage();
+        applyCurrentFilters();
+        
+        // Reload preferences tab
+        switchSettingsTab(null, 'preferences');
+        
+        showToast('✅ Preferences reset to default', 'success');
+    }
+}
+
+// Edit functions (already have these, make sure they work)
+function editName() {
+    const newName = prompt('Enter new name:', currentUser.name || '');
+    if (newName && newName.trim().length >= 2) {
+        currentUser.name = newName.trim();
+        saveToLocalStorage();
+        switchSettingsTab(null, 'account'); // Reload tab
+        showToast('✅ Name updated!', 'success');
+    } else if (newName) {
+        showToast('❌ Name must be at least 2 characters', 'error');
+    }
+}
+
+function editPhone() {
+    const newPhone = prompt('Enter phone number (10 digits):', currentUser.phone || '');
+    if (newPhone && /^\d{10}$/.test(newPhone)) {
+        currentUser.phone = newPhone;
+        saveToLocalStorage();
+        switchSettingsTab(null, 'account');
+        showToast('✅ Phone number updated!', 'success');
+    } else if (newPhone) {
+        showToast('❌ Invalid phone number! Must be 10 digits', 'error');
+    }
+}
+
+function editBio() {
+    const newBio = prompt('Update your bio (20-150 characters):', currentUser.bio || '');
+    if (newBio && newBio.trim().length >= 20 && newBio.trim().length <= 150) {
+        currentUser.bio = newBio.trim();
+        saveToLocalStorage();
+        switchSettingsTab(null, 'account');
+        showToast('✅ Bio updated!', 'success');
+    } else if (newBio) {
+        showToast('❌ Bio must be 20-150 characters', 'error');
+    }
+}
+
+function editYear() {
+    const years = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year', 'PhD'];
+    const yearList = years.map((y, i) => `${i+1}. ${y}`).join('\n');
+    const input = prompt(`Select year:\n\n${yearList}\n\nEnter year (e.g., 2nd Year):`, currentUser.year || '');
+    
+    if (input && years.includes(input)) {
+        currentUser.year = input;
+        saveToLocalStorage();
+        switchSettingsTab(null, 'account');
+        showToast('✅ Year updated!', 'success');
+    } else if (input) {
+        showToast('❌ Invalid year selection', 'error');
+    }
+}
+
+function deleteAccount() {
+    const confirm1 = confirm('⚠️ WARNING!\n\nAre you sure you want to DELETE your account?\n\nThis action CANNOT be undone!\n\nAll your data will be permanently deleted.');
+    if (!confirm1) return;
+    
+    const confirm2 = prompt('Type "DELETE" to confirm account deletion:', '');
+    if (confirm2 === 'DELETE') {
+        // Clear all data
+        localStorage.clear();
+        showToast('Account deleted. Goodbye! 😢', 'info');
+        
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+    } else if (confirm2) {
+        showToast('❌ Account deletion cancelled', 'info');
+    }
+}
+
+function showTerms() {
+    alert(`📜 TERMS OF SERVICE - CampusSoul
+
+1. ELIGIBILITY
+   - Must be IIT Guwahati student
+   - Must be 18+ years old
+   - Must use official IITG email
+
+2. USER CONDUCT
+   - Be respectful to all users
+   - No harassment or abuse
+   - No fake profiles or information
+   - Report violations immediately
+
+3. PRIVACY
+   - Your data is protected
+   - We don't share without consent
+   - You control your visibility
+
+4. SAFETY
+   - Meet in public places
+   - Trust your instincts
+   - Report suspicious behavior
+
+By using CampusSoul, you agree to these terms.`);
+}
+
+function showPrivacyPolicy() {
+    alert(`🔒 PRIVACY POLICY - CampusSoul
+
+DATA COLLECTION:
+- Email, name, age, photos
+- Academic information
+- Usage statistics
+
+DATA USAGE:
+- Profile matching
+- Service improvement
+- Communication
+
+DATA PROTECTION:
+- Encrypted storage
+- No third-party sharing
+- You control visibility
+
+YOUR RIGHTS:
+- View your data
+- Edit your profile
+- Delete your account anytime
+
+Questions? Contact: support@campussoul.com`);
+}
+
+function showGuidelines() {
+    alert(`❤️ COMMUNITY GUIDELINES
+
+BE RESPECTFUL:
+✅ Treat everyone with kindness
+✅ Use appropriate language
+✅ Respect boundaries
+
+BE HONEST:
+✅ Use real photos
+✅ Be truthful about yourself
+✅ Don't catfish
+
+BE SAFE:
+✅ Meet in public places
+✅ Tell friends about meetings
+✅ Trust your instincts
+✅ Report suspicious behavior
+
+BE APPROPRIATE:
+✅ Keep conversations respectful
+✅ No harassment or abuse
+✅ No inappropriate content
+
+VIOLATIONS:
+❌ Harassment → Instant ban
+❌ Fake profiles → Account deletion
+❌ Inappropriate behavior → Reported
+
+Let's keep CampusSoul safe and fun! 💕`);
+}
+
+function contactSupport() {
+    const issue = prompt('📧 Contact Support\n\nDescribe your issue or feedback:');
+    if (issue && issue.trim()) {
+        // In real app, send to backend
+        console.log('Support request:', issue);
+        showToast('✅ Message sent to support team! We\'ll respond within 24 hours.', 'success');
+        
+        // Simulate email (in real app, use EmailJS or backend)
+        const supportEmail = 'support@campussoul.com';
+        const subject = 'Support Request - CampusSoul';
+        const body = `Issue: ${issue}\n\nUser: ${currentUser.email}\nName: ${currentUser.name}`;
+        
+        console.log('Email to:', supportEmail);
+        console.log('Subject:', subject);
+        console.log('Body:', body);
+    }
+}
 
 
+// ==================== APP INITIALIZATION ====================
+console.log('%c💕 CampusSoul', 'color: #ff1493; font-size: 20px; font-weight: bold;');
+console.log('%c✅ All systems ready!', 'color: #00cc00; font-size: 14px;');
+
+// Verify all core functions loaded
+const coreFeatures = ['sendOTP', 'loadCard', 'openSettings', 'openFilters', 'openChat'];
+const allLoaded = coreFeatures.every(fn => typeof window[fn] === 'function');
+
+if (allLoaded) {
+    console.log('🎯 All features loaded successfully!');
+} else {
+    console.warn('⚠️ Some features may not be loaded');
+}
+
+// Show version
+console.log('📌 Version: 1.0.0');
+console.log('🎓 Made for IIT Guwahati');
