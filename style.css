@@ -1,31 +1,50 @@
-/* ==================== ROOT VARIABLES (LIGHT PINK THEME) ==================== */
 :root {
-    --primary-color: #ff1493;
-    --primary-dark: #c71585;
-    --secondary-color: #ff69b4;
-    --success-color: #ff1493;
-    --warning-color: #ff6b9d;
-    --danger-color: #ff4757;
+    --primary-color: #8b5cf6;      /* Purple */
+    --primary-dark: #7c3aed;
+    --secondary-color: #ec4899;    /* Pink */
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
     
-    --bg-primary: #fff5f7;
-    --bg-secondary: #ffe8ec;
-    --bg-tertiary: #ffd4dc;
+    --bg-primary: #faf5ff;
+    --bg-secondary: #f3e8ff;
+    --bg-tertiary: #e9d5ff;
     --bg-card: #ffffff;
     
-    --text-primary: #2d2d2d;
-    --text-secondary: #555555;
-    --text-tertiary: #888888;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-tertiary: #94a3b8;
     
-    --border-color: rgba(255, 20, 147, 0.2);
+    --border-color: rgba(139, 92, 246, 0.2);
     --border-radius: 12px;
     --border-radius-lg: 20px;
     
-    --shadow-sm: 0 2px 8px rgba(255, 20, 147, 0.15);
-    --shadow-md: 0 4px 16px rgba(255, 20, 147, 0.2);
-    --shadow-lg: 0 8px 32px rgba(255, 20, 147, 0.25);
-    --shadow-glow: 0 0 30px rgba(255, 20, 147, 0.3);
+    --shadow-sm: 0 2px 8px rgba(139, 92, 246, 0.15);
+    --shadow-md: 0 4px 16px rgba(139, 92, 246, 0.2);
+    --shadow-lg: 0 8px 32px rgba(139, 92, 246, 0.25);
+    --shadow-glow: 0 0 30px rgba(139, 92, 246, 0.4);
     
     --transition: all 0.3s ease;
+}
+
+body {
+    background: linear-gradient(
+        135deg,
+        #faf5ff 0%,
+        #f3e8ff 20%,
+        #e9d5ff 40%,
+        #ddd6fe 60%,
+        #e9d5ff 80%,
+        #faf5ff 100%
+    );
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 /* ==================== GLOBAL RESET ==================== */
@@ -1810,7 +1829,7 @@ body::after {
 .heart-corner.bottom-right {
     bottom: 80px;
     right: 20px;
-} 
+}
 /* ==================== SETTINGS MODAL ==================== */
 .settings-tabs {
     display: flex;
@@ -2006,5 +2025,3 @@ body::after {
     border-radius: var(--border-radius);
     border: 2px solid rgba(255, 20, 147, 0.2);
 }
-
-
