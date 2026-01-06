@@ -1733,31 +1733,21 @@ function resetFilters() {
 // ==================== SETTINGS & UTILS ====================
 // ==================== SETTINGS MODAL ====================
 function openSettings() {
-    const modal = document.getElementById('settingsModal') || createSettingsModal();
+    console.log('🔧 Opening settings...');
     loadSettingsContent();
-    modal.classList.add('active');
+    const modal = document.getElementById('settingsModal');
+    if (modal) {
+        modal.classList.add('active');
+    } else {
+        showToast('Settings not available', 'error');
+    }
 }
 
 function closeSettings() {
     const modal = document.getElementById('settingsModal');
-    if (modal) modal.classList.remove('active');
-}
-
-function createSettingsModal() {
-    const modal = document.createElement('div');
-    modal.id = 'settingsModal';
-    modal.className = 'modal';
-    modal.innerHTML = `
-        <div class="modal-overlay" onclick="closeSettings()"></div>
-        <div class="modal-content modal-large">
-            <button class="modal-close" onclick="closeSettings()">
-                <i class="fas fa-times"></i>
-            </button>
-            <div id="settingsContent"></div>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    return modal;
+    if (modal) {
+        modal.classList.remove('active');
+    }
 }
 
 function loadSettingsContent() {
@@ -1769,89 +1759,76 @@ function loadSettingsContent() {
             <i class="fas fa-cog"></i> Settings
         </h2>
         
-        <!-- Tabs -->
         <div class="settings-tabs">
-            <button class="settings-tab active" onclick="switchSettingsTab('account')">
+            <button class="settings-tab active" onclick="switchSettingsTab(event, 'account')">
                 <i class="fas fa-user"></i> Account
             </button>
-            <button class="settings-tab" onclick="switchSettingsTab('privacy')">
+            <button class="settings-tab" onclick="switchSettingsTab(event, 'privacy')">
                 <i class="fas fa-lock"></i> Privacy
             </button>
-            <button class="settings-tab" onclick="switchSettingsTab('notifications')">
+            <button class="settings-tab" onclick="switchSettingsTab(event, 'notifications')">
                 <i class="fas fa-bell"></i> Notifications
             </button>
-            <button class="settings-tab" onclick="switchSettingsTab('preferences')">
+            <button class="settings-tab" onclick="switchSettingsTab(event, 'preferences')">
                 <i class="fas fa-sliders-h"></i> Preferences
             </button>
-            <button class="settings-tab" onclick="switchSettingsTab('about')">
+            <button class="settings-tab" onclick="switchSettingsTab(event, 'about')">
                 <i class="fas fa-info-circle"></i> About
             </button>
         </div>
         
-        <!-- Settings Content -->
         <div class="settings-content-area">
             <div id="settingsTabContent"></div>
         </div>
     `;
     
-    switchSettingsTab('account');
+    // Load first tab
+    loadAccountTab();
 }
 
 function switchSettingsTab(event, tabName) {
-    // Update active tab - FIXED VERSION
-    const allTabs = document.querySelectorAll('.settings-tab');
-    allTabs.forEach(tab => {
-        tab.classList.remove('active');
-    });
-    
-    // Add active class to clicked tab
+    // Update active state
+    document.querySelectorAll('.settings-tab').forEach(tab => tab.classList.remove('active'));
     if (event && event.currentTarget) {
         event.currentTarget.classList.add('active');
-    } else {
-        // If no event (first load), activate first tab
-        const firstTab = document.querySelector('.settings-tab');
-        if (firstTab) {
-            firstTab.classList.add('active');
-        }
     }
     
     const container = document.getElementById('settingsTabContent');
-    if (!container) {
-        console.error('Settings tab content container not found');
-        return;
-    }
+    if (!container) return;
     
-    // Load content based on tab
+    // Load appropriate tab
     switch(tabName) {
         case 'account':
-            container.innerHTML = getAccountSettingsHTML();
+            loadAccountTab();
             break;
         case 'privacy':
-            container.innerHTML = getPrivacySettingsHTML();
+            loadPrivacyTab();
             break;
         case 'notifications':
-            container.innerHTML = getNotificationSettingsHTML();
+            loadNotificationsTab();
             break;
         case 'preferences':
-            container.innerHTML = getPreferencesSettingsHTML();
+            loadPreferencesTab();
             break;
         case 'about':
-            container.innerHTML = getAboutSettingsHTML();
+            loadAboutTab();
             break;
-        default:
-            container.innerHTML = getAccountSettingsHTML();
     }
 }
 
-function getAccountSettingsHTML() {
-    return `
+// Account Tab
+function loadAccountTab() {
+    const container = document.getElementById('settingsTabContent');
+    if (!container) return;
+    
+    container.innerHTML = `
         <div class="settings-section">
             <h3><i class="fas fa-user-edit"></i> Account Information</h3>
             
             <div class="setting-item">
                 <div class="setting-info">
                     <strong>Email</strong>
-                    <p>${currentUser.email}</p>
+                    <p>${currentUser.email || 'Not set'}</p>
                 </div>
                 <span class="badge-verified"><i class="fas fa-check-circle"></i> Verified</span>
             </div>
@@ -1859,7 +1836,7 @@ function getAccountSettingsHTML() {
             <div class="setting-item">
                 <div class="setting-info">
                     <strong>Name</strong>
-                    <p>${currentUser.name}</p>
+                    <p>${currentUser.name || 'Not set'}</p>
                 </div>
                 <button class="btn-edit" onclick="editName()">
                     <i class="fas fa-edit"></i> Edit
@@ -1868,18 +1845,8 @@ function getAccountSettingsHTML() {
             
             <div class="setting-item">
                 <div class="setting-info">
-                    <strong>Phone Number</strong>
-                    <p>${currentUser.phone || 'Not added'}</p>
-                </div>
-                <button class="btn-edit" onclick="editPhone()">
-                    <i class="fas fa-edit"></i> ${currentUser.phone ? 'Edit' : 'Add'}
-                </button>
-            </div>
-            
-            <div class="setting-item">
-                <div class="setting-info">
                     <strong>Bio</strong>
-                    <p>${currentUser.bio}</p>
+                    <p>${currentUser.bio || 'Not set'}</p>
                 </div>
                 <button class="btn-edit" onclick="editBio()">
                     <i class="fas fa-edit"></i> Edit
@@ -1893,21 +1860,21 @@ function getAccountSettingsHTML() {
             <div class="setting-item">
                 <div class="setting-info">
                     <strong>Discipline</strong>
-                    <p>${currentUser.discipline}</p>
+                    <p>${currentUser.discipline || 'Not set'}</p>
                 </div>
             </div>
             
             <div class="setting-item">
                 <div class="setting-info">
                     <strong>Branch</strong>
-                    <p>${currentUser.branch}</p>
+                    <p>${currentUser.branch || 'Not set'}</p>
                 </div>
             </div>
             
             <div class="setting-item">
                 <div class="setting-info">
                     <strong>Year</strong>
-                    <p>${currentUser.year}</p>
+                    <p>${currentUser.year || 'Not set'}</p>
                 </div>
                 <button class="btn-edit" onclick="editYear()">
                     <i class="fas fa-edit"></i> Update
@@ -1917,43 +1884,41 @@ function getAccountSettingsHTML() {
         
         <div class="settings-section danger-zone">
             <h3><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
-            
             <button class="btn btn-secondary btn-block" onclick="deleteAccount()">
                 <i class="fas fa-trash"></i> Delete Account
             </button>
         </div>
     `;
 }
-function getPrivacySettingsHTML() {
-    // Initialize privacy settings if not exist
+
+// Privacy Tab
+function loadPrivacyTab() {
+    // Initialize if needed
     if (!currentUser.privacySettings) {
         currentUser.privacySettings = {
             showAge: true,
             showBranch: true,
             showPhone: false,
-            showOnlineStatus: true,
-            allowMessages: 'everyone'
+            showOnlineStatus: true
         };
-        saveToLocalStorage();
     }
     
     const settings = currentUser.privacySettings;
+    const container = document.getElementById('settingsTabContent');
+    if (!container) return;
     
-    return `
+    container.innerHTML = `
         <div class="settings-section">
             <h3><i class="fas fa-eye"></i> Profile Visibility</h3>
-            <p style="color:var(--text-secondary); margin-bottom:20px;">
-                Control what information is visible on your profile
-            </p>
             
             <div class="setting-item">
                 <div class="setting-info">
                     <strong>Show Age</strong>
-                    <p>Display your age on your profile</p>
+                    <p>Display your age on profile</p>
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" ${settings.showAge ? 'checked' : ''} 
-                           onchange="togglePrivacySetting('showAge', this.checked)">
+                           onchange="handlePrivacyToggle('showAge', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
@@ -1961,23 +1926,11 @@ function getPrivacySettingsHTML() {
             <div class="setting-item">
                 <div class="setting-info">
                     <strong>Show Branch</strong>
-                    <p>Display your branch/department</p>
+                    <p>Display your branch</p>
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" ${settings.showBranch ? 'checked' : ''} 
-                           onchange="togglePrivacySetting('showBranch', this.checked)">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <strong>Show Phone Number</strong>
-                    <p>Allow matches to see your phone number</p>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" ${settings.showPhone ? 'checked' : ''} 
-                           onchange="togglePrivacySetting('showPhone', this.checked)">
+                           onchange="handlePrivacyToggle('showBranch', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
@@ -1989,183 +1942,107 @@ function getPrivacySettingsHTML() {
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" ${settings.showOnlineStatus ? 'checked' : ''} 
-                           onchange="togglePrivacySetting('showOnlineStatus', this.checked)">
+                           onchange="handlePrivacyToggle('showOnlineStatus', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
         </div>
         
         <div class="settings-section">
-            <h3><i class="fas fa-user-shield"></i> Who Can Message You</h3>
+            <h3><i class="fas fa-ban"></i> Blocked Users</h3>
+            <p style="color:var(--text-secondary);">You haven't blocked anyone yet.</p>
+        </div>
+    `;
+}
+
+// Notifications Tab
+function loadNotificationsTab() {
+    if (!currentUser.notificationSettings) {
+        currentUser.notificationSettings = {
+            newMatches: true,
+            newMessages: true,
+            likes: true
+        };
+    }
+    
+    const settings = currentUser.notificationSettings;
+    const container = document.getElementById('settingsTabContent');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="settings-section">
+            <h3><i class="fas fa-bell"></i> Push Notifications</h3>
             
             <div class="setting-item">
                 <div class="setting-info">
-                    <strong>Message Permissions</strong>
-                    <p>Control who can start conversations with you</p>
+                    <strong>New Matches</strong>
+                    <p>Get notified about new matches</p>
                 </div>
-                <select class="setting-select" onchange="changeMessagePermissions(this.value)">
-                    <option value="everyone" ${settings.allowMessages === 'everyone' ? 'selected' : ''}>
-                        Everyone
-                    </option>
-                    <option value="matches" ${settings.allowMessages === 'matches' ? 'selected' : ''}>
-                        Only Matches
-                    </option>
-                    <option value="none" ${settings.allowMessages === 'none' ? 'selected' : ''}>
-                        No One
-                    </option>
-                </select>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${settings.newMatches ? 'checked' : ''} 
+                           onchange="handleNotificationToggle('newMatches', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>New Messages</strong>
+                    <p>Get notified about messages</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${settings.newMessages ? 'checked' : ''} 
+                           onchange="handleNotificationToggle('newMessages', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Likes</strong>
+                    <p>Get notified when someone likes you</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${settings.likes ? 'checked' : ''} 
+                           onchange="handleNotificationToggle('likes', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
         </div>
         
         <div class="settings-section">
-            <h3><i class="fas fa-ban"></i> Blocked Users</h3>
-            <p style="color:var(--text-secondary);">
-                You haven't blocked anyone yet.
-            </p>
-            <button class="btn btn-secondary" onclick="viewBlockedUsers()" style="margin-top:15px;">
-                <i class="fas fa-list"></i> View Blocked List
+            <button class="btn btn-secondary btn-block" onclick="testNotification()">
+                <i class="fas fa-bell"></i> Test Notification
             </button>
         </div>
     `;
 }
-function getAboutSettingsHTML() {
-    return `
-        <div class="settings-section">
-            <div class="about-card">
-                <h1 style="font-size:3rem; margin-bottom:10px;">💕 CampusSoul</h1>
-                <p style="color:var(--primary-color); font-weight:600; margin-bottom:10px; font-size:1.1rem;">
-                    IIT Guwahati Dating Platform
-                </p>
-                <p style="color:var(--text-secondary); margin-bottom:20px; font-size:0.95rem;">
-                    Version 1.0.0 | January 2026
-                </p>
-                <div style="background:var(--bg-primary); padding:20px; border-radius:10px; margin:20px 0;">
-                    <p style="line-height:1.8; color:var(--text-primary);">
-                        CampusSoul is a platform designed exclusively for IIT Guwahati students 
-                        to find study partners, make meaningful friendships, and discover 
-                        romantic connections within the campus community.
-                    </p>
-                </div>
-                <div style="display:flex; gap:15px; justify-content:center; margin-top:20px;">
-                    <div style="text-align:center;">
-                        <div style="font-size:2rem; color:var(--primary-color);">
-                            ${students.length}+
-                        </div>
-                        <div style="color:var(--text-secondary); font-size:0.85rem;">Students</div>
-                    </div>
-                    <div style="text-align:center;">
-                        <div style="font-size:2rem; color:var(--primary-color);">
-                            ${appState.matches.length}
-                        </div>
-                        <div style="color:var(--text-secondary); font-size:0.85rem;">Your Matches</div>
-                    </div>
-                    <div style="text-align:center;">
-                        <div style="font-size:2rem; color:var(--primary-color);">
-                            ${calculateTotalLikes()}
-                        </div>
-                        <div style="color:var(--text-secondary); font-size:0.85rem;">Connections</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="settings-section">
-            <h3><i class="fas fa-book"></i> Legal & Policies</h3>
-            
-            <button class="btn btn-secondary btn-block" onclick="showTermsOfService()" style="margin-bottom:12px;">
-                <i class="fas fa-file-contract"></i> Terms of Service
-            </button>
-            
-            <button class="btn btn-secondary btn-block" onclick="showPrivacyPolicyPopup()" style="margin-bottom:12px;">
-                <i class="fas fa-shield-alt"></i> Privacy Policy
-            </button>
-            
-            <button class="btn btn-secondary btn-block" onclick="showCommunityGuidelines()">
-                <i class="fas fa-list-ul"></i> Community Guidelines
-            </button>
-        </div>
-        
-        <div class="settings-section">
-            <h3><i class="fas fa-headset"></i> Help & Support</h3>
-            
-            <button class="btn btn-secondary btn-block" onclick="contactSupportTeam()" style="margin-bottom:12px;">
-                <i class="fas fa-envelope"></i> Contact Support
-            </button>
-            
-            <button class="btn btn-secondary btn-block" onclick="reportBugIssue()" style="margin-bottom:12px;">
-                <i class="fas fa-bug"></i> Report a Bug
-            </button>
-            
-            <button class="btn btn-secondary btn-block" onclick="provideFeedback()">
-                <i class="fas fa-comment"></i> Send Feedback
-            </button>
-        </div>
-        
-        <div class="settings-section">
-            <h3><i class="fas fa-share-alt"></i> Share CampusSoul</h3>
-            
-            <button class="btn btn-primary btn-block" onclick="shareApp()">
-                <i class="fas fa-share"></i> Share with Friends
-            </button>
-        </div>
-        
-        <div style="text-align:center; margin-top:30px; color:var(--text-secondary); font-size:0.9rem;">
-            <p>Made with 💕 for IIT Guwahati</p>
-            <p style="margin-top:10px;">© 2026 CampusSoul. All rights reserved.</p>
-        </div>
-    `;
-}
-function getPreferencesSettingsHTML() {
-    return `
+
+// Preferences Tab
+function loadPreferencesTab() {
+    const container = document.getElementById('settingsTabContent');
+    if (!container) return;
+    
+    container.innerHTML = `
         <div class="settings-section">
             <h3><i class="fas fa-heart"></i> Discovery Preferences</h3>
             
             <div class="setting-item">
                 <div class="setting-info">
-                    <strong>Show Me</strong>
-                    <p>Who would you like to see in discovery</p>
-                </div>
-                <select class="setting-select" onchange="changeGenderPreference(this.value)">
-                    <option value="Everyone" ${appState.filters.gender === 'Everyone' ? 'selected' : ''}>
-                        Everyone
-                    </option>
-                    <option value="Male" ${appState.filters.gender === 'Male' ? 'selected' : ''}>
-                        Male
-                    </option>
-                    <option value="Female" ${appState.filters.gender === 'Female' ? 'selected' : ''}>
-                        Female
-                    </option>
-                </select>
-            </div>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <strong>Maximum Distance</strong>
-                    <p id="distanceValue">Show profiles within ${appState.filters.distance} km</p>
+                    <strong>Distance</strong>
+                    <p>Maximum distance: ${appState.filters.distance} km</p>
                 </div>
             </div>
             <input type="range" min="1" max="50" value="${appState.filters.distance}" 
-                   class="setting-range" 
-                   oninput="updateDistanceDisplay(this.value)"
-                   onchange="updateDistance(this.value)"
-                   style="width:100%; margin-top:10px;">
+                   class="setting-range" style="width:100%; margin-top:10px;"
+                   oninput="updateDistanceLive(this.value)"
+                   onchange="saveDistance(this.value)">
             
             <div class="setting-item" style="margin-top:20px;">
                 <div class="setting-info">
                     <strong>Age Range</strong>
-                    <p id="ageRangeValue">${appState.filters.ageMin} - ${appState.filters.ageMax} years</p>
+                    <p>${appState.filters.ageMin} - ${appState.filters.ageMax} years</p>
                 </div>
-            </div>
-            <div style="display:flex; gap:15px; align-items:center; margin-top:10px;">
-                <input type="number" min="18" max="35" value="${appState.filters.ageMin}" 
-                       class="setting-input" 
-                       onchange="updateAgeMin(this.value)"
-                       placeholder="Min">
-                <span style="color:var(--text-secondary);">to</span>
-                <input type="number" min="18" max="35" value="${appState.filters.ageMax}" 
-                       class="setting-input" 
-                       onchange="updateAgeMax(this.value)"
-                       placeholder="Max">
             </div>
         </div>
         
@@ -2175,1109 +2052,142 @@ function getPreferencesSettingsHTML() {
                 <i class="fas fa-sliders-h"></i> Open Advanced Filters
             </button>
         </div>
-        
-        <div class="settings-section">
-            <h3><i class="fas fa-sync-alt"></i> Reset Preferences</h3>
-            <button class="btn btn-secondary btn-block" onclick="resetPreferences()">
-                <i class="fas fa-undo"></i> Reset to Default
-            </button>
-        </div>
     `;
 }
 
-
-function getAboutSettingsHTML() {
-    return `
+// About Tab
+function loadAboutTab() {
+    const container = document.getElementById('settingsTabContent');
+    if (!container) return;
+    
+    container.innerHTML = `
         <div class="settings-section">
-            <h3><i class="fas fa-info-circle"></i> About CampusSoul</h3>
-            
             <div class="about-card">
                 <h1 style="font-size:3rem; margin-bottom:10px;">💕 CampusSoul</h1>
                 <p style="color:var(--primary-color); font-weight:600; margin-bottom:20px;">
                     IIT Guwahati Dating Platform
                 </p>
                 <p style="color:var(--text-secondary); margin-bottom:20px;">
-                    Version 1.0.0
+                    Version 1.0.0 | January 2026
                 </p>
                 <p style="line-height:1.8;">
-                    CampusSoul is a platform for IIT Guwahati students to find study partners, 
-                    friends, and meaningful connections within the campus community.
+                    CampusSoul is a platform for IIT Guwahati students to find 
+                    meaningful connections within the campus community.
                 </p>
             </div>
         </div>
         
         <div class="settings-section">
-            <h3><i class="fas fa-book"></i> Legal</h3>
+            <h3><i class="fas fa-book"></i> Legal & Support</h3>
             
-            <button class="btn btn-secondary btn-block" onclick="showTerms()">
+            <button class="btn btn-secondary btn-block" style="margin-bottom:12px;" 
+                    onclick="showTermsPopup()">
                 <i class="fas fa-file-contract"></i> Terms of Service
             </button>
             
-            <button class="btn btn-secondary btn-block" onclick="showPrivacyPolicy()">
+            <button class="btn btn-secondary btn-block" style="margin-bottom:12px;" 
+                    onclick="showPrivacyPopup()">
                 <i class="fas fa-shield-alt"></i> Privacy Policy
             </button>
             
-            <button class="btn btn-secondary btn-block" onclick="showGuidelines()">
-                <i class="fas fa-list-ul"></i> Community Guidelines
-            </button>
-        </div>
-        
-        <div class="settings-section">
-            <h3><i class="fas fa-headset"></i> Support</h3>
-            
-            <button class="btn btn-secondary btn-block" onclick="contactSupport()">
+            <button class="btn btn-secondary btn-block" onclick="contactSupportNow()">
                 <i class="fas fa-envelope"></i> Contact Support
-            </button>
-            
-            <button class="btn btn-secondary btn-block" onclick="reportBug()">
-                <i class="fas fa-bug"></i> Report a Bug
             </button>
         </div>
     `;
 }
 
-// Update functions
-function updatePrivacySetting(setting, value) {
-    if (!currentUser.privacySettings) {
-        currentUser.privacySettings = {};
-    }
+// Action Handlers
+function handlePrivacyToggle(setting, value) {
     currentUser.privacySettings[setting] = value;
     saveToLocalStorage();
-    showToast('Privacy setting updated ✅', 'success');
+    showToast(`✅ ${setting} ${value ? 'enabled' : 'disabled'}`, 'success');
 }
 
-function updateNotificationSetting(setting, value) {
-    if (!currentUser.notificationSettings) {
-        currentUser.notificationSettings = {};
-    }
+function handleNotificationToggle(setting, value) {
     currentUser.notificationSettings[setting] = value;
     saveToLocalStorage();
-    showToast('Notification setting updated ✅', 'success');
+    showToast(`✅ Notification ${value ? 'enabled' : 'disabled'}`, 'success');
 }
 
-function updatePreference(key, value) {
-    appState.filters[key] = value;
-    saveToLocalStorage();
-    showToast('Preference updated ✅', 'success');
+function updateDistanceLive(value) {
+    const info = document.querySelector('.setting-info strong');
+    if (info && info.textContent === 'Distance') {
+        info.nextElementSibling.textContent = `Maximum distance: ${value} km`;
+    }
 }
 
-function updateDistance(value) {
+function saveDistance(value) {
     appState.filters.distance = parseInt(value);
-    document.querySelector('.setting-info p').textContent = `Maximum distance: ${value} km`;
     saveToLocalStorage();
-}
-
-function updateAgeMin(value) {
-    appState.filters.ageMin = parseInt(value);
-    saveToLocalStorage();
-}
-
-function updateAgeMax(value) {
-    appState.filters.ageMax = parseInt(value);
-    saveToLocalStorage();
-}
-
-// Edit functions
-function editName() {
-    const newName = prompt('Enter new name:', currentUser.name);
-    if (newName && newName.trim()) {
-        currentUser.name = newName.trim();
-        saveToLocalStorage();
-        loadSettingsContent();
-        showToast('Name updated! ✅', 'success');
-    }
-}
-
-function editPhone() {
-    const newPhone = prompt('Enter phone number (10 digits):', currentUser.phone || '');
-    if (newPhone && /^\d{10}$/.test(newPhone)) {
-        currentUser.phone = newPhone;
-        saveToLocalStorage();
-        loadSettingsContent();
-        showToast('Phone number updated! ✅', 'success');
-    } else if (newPhone) {
-        showToast('Invalid phone number!', 'error');
-    }
-}
-
-function editBio() {
-    const newBio = prompt('Update your bio:', currentUser.bio);
-    if (newBio && newBio.trim().length >= 20) {
-        currentUser.bio = newBio.trim();
-        saveToLocalStorage();
-        loadSettingsContent();
-        showToast('Bio updated! ✅', 'success');
-    } else if (newBio) {
-        showToast('Bio must be at least 20 characters!', 'error');
-    }
-}
-
-function editYear() {
-    const years = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year'];
-    const newYear = prompt(`Enter year (${years.join(', ')}):`, currentUser.year);
-    if (newYear && years.includes(newYear)) {
-        currentUser.year = newYear;
-        saveToLocalStorage();
-        loadSettingsContent();
-        showToast('Year updated! ✅', 'success');
-    } else if (newYear) {
-        showToast('Invalid year!', 'error');
-    }
-}
-
-function deleteAccount() {
-    const confirm1 = confirm('⚠️ Are you sure you want to delete your account? This cannot be undone!');
-    if (!confirm1) return;
-    
-    const confirm2 = confirm('❗ Final confirmation: Delete account permanently?');
-    if (!confirm2) return;
-    
-    // Clear all data
-    localStorage.clear();
-    showToast('Account deleted. We\'re sad to see you go 😢', 'info');
-    setTimeout(() => {
-        window.location.reload();
-    }, 2000);
-}
-
-function showTerms() {
-    alert('Terms of Service:\n\n1. Be respectful to all users\n2. No harassment or abuse\n3. Verify your identity\n4. Report violations\n5. Use for educational purposes');
-}
-
-function showPrivacyPolicy() {
-    alert('Privacy Policy:\n\nWe protect your data and privacy. Your information is stored securely and never shared without consent.');
-}
-
-function showGuidelines() {
-    alert('Community Guidelines:\n\n1. Be kind and respectful\n2. No fake profiles\n3. Report suspicious behavior\n4. Keep conversations appropriate\n5. Meet in public places');
-}
-
-function contactSupport() {
-    const email = 'support@campussoul.com';
-    const subject = 'Support Request';
-    window.location.href = `mailto:${email}?subject=${subject}`;
-}
-
-
-function openNotifications() {
-    showToast(`You have ${notifications.length} notifications`, 'info');
-}
-
-function openMessages() {
-    switchView('messages');
-}
-
-function toggleProfileMenu() {
-    const dropdown = document.getElementById('profileDropdown');
-    if (dropdown) {
-        dropdown.classList.toggle('active');
-    }
-}
-
-function openHelp() {
-    showToast('Help center coming soon! 💡', 'info');
-}
-
-function logout() {
-    if (confirm('Are you sure you want to logout?')) {
-        switchPage('loginPage');
-        showToast('Logged out successfully! 👋', 'info');
-    }
-}
-
-function searchGlobally(query) {
-    console.log('Searching for:', query);
-    // Implement global search
-}
-
-function filterMatchesBy(type) {
-    console.log('Filter matches by:', type);
-    // Implement match filtering
-}
-
-function loadOnlineUsers() {
-    const container = document.getElementById('onlineUsersList');
-    if (!container) return;
-    
-    const onlineStudents = students.filter(s => s.online && s.email !== currentUser.email).slice(0, 10);
-    
-    if (onlineStudents.length === 0) {
-        container.innerHTML = '<p style="color:var(--text-secondary); font-size:0.9rem;">No users online</p>';
-        return;
-    }
-    
-    container.innerHTML = onlineStudents.map(s => `
-        <div class="online-user-item" onclick="viewFullProfile(${s.id})">
-            <div style="position:relative;">
-                <img src="${s.mainPhoto}" alt="${s.name}">
-                <div class="online-dot"></div>
-            </div>
-            <div style="flex:1; min-width:0;">
-                <h5 style="font-size:0.9rem; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</h5>
-                <small style="color:var(--text-secondary); font-size:0.8rem;">${s.branch}</small>
-            </div>
-        </div>
-    `).join('');
-}
-
-function showSafetyTips() {
-    showToast('Always meet in public places on campus! 🛡️', 'info');
-}
-
-function showSuccessStories() {
-    showToast('Success stories coming soon! 💑', 'info');
-}
-
-function reportBug() {
-    showToast('Bug report feature coming soon! 🐛', 'info');
-}
-
-function updateStats() {
-    const viewsEl = document.getElementById('profileViewsStat');
-    const matchesEl = document.getElementById('matchesStat');
-    const likesEl = document.getElementById('likesStat');
-    
-    if (viewsEl) viewsEl.textContent = stats.profileViews;
-    if (matchesEl) matchesEl.textContent = stats.totalMatches;
-    if (likesEl) likesEl.textContent = likes.length;
-}
-
-function updateBadges() {
-    const matchesBadge = document.getElementById('matchesBadge');
-    const likesBadge = document.getElementById('likesBadge');
-    const notifBadge = document.getElementById('notifBadge');
-    const msgBadge = document.getElementById('msgBadge');
-    
-    const totalUnread = matches.reduce((sum, m) => sum + (m.unreadCount || 0), 0);
-    
-    if (matchesBadge) {
-        matchesBadge.textContent = matches.length;
-        matchesBadge.style.display = matches.length > 0 ? 'block' : 'none';
-    }
-    
-    if (likesBadge) {
-        likesBadge.textContent = likes.length;
-        likesBadge.style.display = likes.length > 0 ? 'block' : 'none';
-    }
-    
-    if (notifBadge) {
-        notifBadge.textContent = notifications.length;
-        notifBadge.style.display = notifications.length > 0 ? 'block' : 'none';
-    }
-    
-    if (msgBadge) {
-        msgBadge.textContent = totalUnread;
-        msgBadge.style.display = totalUnread > 0 ? 'block' : 'none';
-    }
-}
-
-function addNotification(notification) {
-    notifications.unshift(notification);
-    if (notifications.length > 50) {
-        notifications = notifications.slice(0, 50);
-    }
-    updateBadges();
-    saveToLocalStorage();
-}
-
-// ==================== LOCAL STORAGE ====================
-function saveToLocalStorage() {
-    try {
-        localStorage.setItem('campussoul_user_' + currentUser.email, JSON.stringify(currentUser));
-        localStorage.setItem('campussoul_matches', JSON.stringify(matches));
-        localStorage.setItem('campussoul_likes', JSON.stringify(likes));
-        localStorage.setItem('campussoul_chats', JSON.stringify(chatMessages));
-        localStorage.setItem('campussoul_stats', JSON.stringify(stats));
-        localStorage.setItem('campussoul_state', JSON.stringify(appState));
-        localStorage.setItem('campussoul_notifications', JSON.stringify(notifications));
-        localStorage.setItem('campussoul_superLikes', superLikesLeft);
-        console.log('💾 Data saved');
-    } catch (e) {
-        console.error('Failed to save:', e);
-    }
-}
-
-function loadFromLocalStorage() {
-    try {
-        const savedState = localStorage.getItem('campussoul_state');
-        const savedMatches = localStorage.getItem('campussoul_matches');
-        const savedLikes = localStorage.getItem('campussoul_likes');
-        const savedChats = localStorage.getItem('campussoul_chats');
-        const savedStats = localStorage.getItem('campussoul_stats');
-        const savedNotifications = localStorage.getItem('campussoul_notifications');
-        const savedSuperLikes = localStorage.getItem('campussoul_superLikes');
-        
-        if (savedState) appState = JSON.parse(savedState);
-        if (savedMatches) matches = JSON.parse(savedMatches);
-        if (savedLikes) likes = JSON.parse(savedLikes);
-        if (savedChats) chatMessages = JSON.parse(savedChats);
-        if (savedStats) stats = JSON.parse(savedStats);
-        if (savedNotifications) notifications = JSON.parse(savedNotifications);
-        if (savedSuperLikes) superLikesLeft = parseInt(savedSuperLikes);
-        
-        // Check if returning user
-        if (appState.currentPage && document.getElementById('emailInput')) {
-            const lastEmail = document.getElementById('emailInput').value;
-            if (lastEmail) {
-                const savedUser = localStorage.getItem('campussoul_user_' + lastEmail);
-                if (savedUser) {
-                    currentUser = JSON.parse(savedUser);
-                }
-            }
-        }
-        
-        console.log('📂 Data loaded');
-    } catch (e) {
-        console.error('Failed to load:', e);
-    }
-}
-
-// ==================== TOAST NOTIFICATIONS ====================
-function showToast(message, type = 'info') {
-    const container = document.getElementById('toastContainer') || createToastContainer();
-    
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
-    
-    container.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.animation = 'slideIn 0.3s ease reverse';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-function createToastContainer() {
-    const container = document.createElement('div');
-    container.id = 'toastContainer';
-    document.body.appendChild(container);
-    return container;
-}
-
-// ==================== SIMULATIONS ====================
-// Simulate online status changes
-setInterval(() => {
-    students.forEach(student => {
-        if (Math.random() > 0.9) {
-            student.online = !student.online;
-        }
-    });
-    loadOnlineUsers();
-}, 30000);
-
-// Auto-save
-setInterval(() => {
-    if (currentUser.id) {
-        saveToLocalStorage();
-    }
-}, 60000);
-
-// Reset super likes daily (simulated)
-setInterval(() => {
-    const now = new Date();
-    if (now.getHours() === 0 && now.getMinutes() === 0) {
-        superLikesLeft = CONFIG.SUPER_LIKES_PER_DAY;
-        document.getElementById('superLikesCount').textContent = superLikesLeft;
-        showToast('Super Likes refilled! ⭐', 'success');
-    }
-}, 60000);
-// ==================== SETTINGS ACTION FUNCTIONS ====================
-
-// Privacy toggles
-function togglePrivacy(setting, value) {
-    if (!currentUser.privacySettings) {
-        currentUser.privacySettings = {};
-    }
-    currentUser.privacySettings[setting] = value;
-    saveToLocalStorage();
-    
-    const settingNames = {
-        showAge: 'Age visibility',
-        showBranch: 'Branch visibility',
-        showPhone: 'Phone visibility',
-        showOnlineStatus: 'Online status'
-    };
-    
-    showToast(`✅ ${settingNames[setting]} ${value ? 'enabled' : 'disabled'}`, 'success');
-    console.log('Privacy setting updated:', setting, value);
-}
-
-function changeMessagePermission(value) {
-    if (!currentUser.privacySettings) {
-        currentUser.privacySettings = {};
-    }
-    currentUser.privacySettings.allowMessages = value;
-    saveToLocalStorage();
-    
-    const messages = {
-        everyone: 'Everyone can message you',
-        matches: 'Only matches can message you',
-        none: 'Messaging disabled'
-    };
-    
-    showToast(`✅ ${messages[value]}`, 'success');
-}
-
-// Notification toggles
-function toggleNotification(setting, value) {
-    if (!currentUser.notificationSettings) {
-        currentUser.notificationSettings = {};
-    }
-    currentUser.notificationSettings[setting] = value;
-    saveToLocalStorage();
-    
-    const settingNames = {
-        newMatches: 'New match notifications',
-        newMessages: 'Message notifications',
-        likes: 'Like notifications',
-        superLikes: 'Super like notifications',
-        emailNotifications: 'Email notifications'
-    };
-    
-    showToast(`✅ ${settingNames[setting]} ${value ? 'enabled' : 'disabled'}`, 'success');
+    showToast(`✅ Distance set to ${value} km`, 'success');
 }
 
 function testNotification() {
-    showToast('🔔 This is a test notification!', 'info');
-    setTimeout(() => {
-        showToast('💕 You have a new match!', 'success');
-    }, 1500);
+    showToast('🔔 Test notification!', 'info');
+    setTimeout(() => showToast('💕 You have a new match!', 'success'), 1500);
 }
 
-// Preference updates
-function changeGenderPreference(value) {
-    appState.filters.gender = value;
-    saveToLocalStorage();
-    applyCurrentFilters();
-    showToast(`✅ Showing ${value === 'Everyone' ? 'everyone' : value + ' profiles'}`, 'success');
-}
-
-function updateDistanceDisplay(value) {
-    const display = document.getElementById('distanceValue');
-    if (display) {
-        display.textContent = `Show profiles within ${value} km`;
-    }
-}
-
-function updateDistance(value) {
-    appState.filters.distance = parseInt(value);
-    saveToLocalStorage();
-    applyCurrentFilters();
-    showToast(`✅ Maximum distance set to ${value} km`, 'success');
-}
-
-function updateAgeMin(value) {
-    const min = parseInt(value);
-    if (min >= 18 && min < appState.filters.ageMax) {
-        appState.filters.ageMin = min;
-        saveToLocalStorage();
-        applyCurrentFilters();
-        updateAgeRangeDisplay();
-        showToast(`✅ Minimum age set to ${min}`, 'success');
-    } else {
-        showToast('❌ Invalid age range', 'error');
-    }
-}
-
-function updateAgeMax(value) {
-    const max = parseInt(value);
-    if (max <= 35 && max > appState.filters.ageMin) {
-        appState.filters.ageMax = max;
-        saveToLocalStorage();
-        applyCurrentFilters();
-        updateAgeRangeDisplay();
-        showToast(`✅ Maximum age set to ${max}`, 'success');
-    } else {
-        showToast('❌ Invalid age range', 'error');
-    }
-}
-
-function updateAgeRangeDisplay() {
-    const display = document.getElementById('ageRangeValue');
-    if (display) {
-        display.textContent = `${appState.filters.ageMin} - ${appState.filters.ageMax} years`;
-    }
-}
-
-function resetPreferences() {
-    if (confirm('Reset all discovery preferences to default?')) {
-        appState.filters = {
-            gender: 'Everyone',
-            discipline: 'All',
-            branch: 'All',
-            year: 'All',
-            interests: [],
-            distance: 10,
-            ageMin: 18,
-            ageMax: 28
-        };
-        saveToLocalStorage();
-        applyCurrentFilters();
-        
-        // Reload preferences tab
-        switchSettingsTab(null, 'preferences');
-        
-        showToast('✅ Preferences reset to default', 'success');
-    }
-}
-
-// Edit functions (already have these, make sure they work)
+// Edit Functions
 function editName() {
-    const newName = prompt('Enter new name:', currentUser.name || '');
+    const newName = prompt('Enter new name:', currentUser.name);
     if (newName && newName.trim().length >= 2) {
         currentUser.name = newName.trim();
         saveToLocalStorage();
-        switchSettingsTab(null, 'account'); // Reload tab
+        loadAccountTab();
         showToast('✅ Name updated!', 'success');
     } else if (newName) {
-        showToast('❌ Name must be at least 2 characters', 'error');
-    }
-}
-
-function editPhone() {
-    const newPhone = prompt('Enter phone number (10 digits):', currentUser.phone || '');
-    if (newPhone && /^\d{10}$/.test(newPhone)) {
-        currentUser.phone = newPhone;
-        saveToLocalStorage();
-        switchSettingsTab(null, 'account');
-        showToast('✅ Phone number updated!', 'success');
-    } else if (newPhone) {
-        showToast('❌ Invalid phone number! Must be 10 digits', 'error');
+        showToast('❌ Name too short', 'error');
     }
 }
 
 function editBio() {
-    const newBio = prompt('Update your bio (20-150 characters):', currentUser.bio || '');
-    if (newBio && newBio.trim().length >= 20 && newBio.trim().length <= 150) {
+    const newBio = prompt('Update bio (20+ characters):', currentUser.bio);
+    if (newBio && newBio.trim().length >= 20) {
         currentUser.bio = newBio.trim();
         saveToLocalStorage();
-        switchSettingsTab(null, 'account');
+        loadAccountTab();
         showToast('✅ Bio updated!', 'success');
     } else if (newBio) {
-        showToast('❌ Bio must be 20-150 characters', 'error');
+        showToast('❌ Bio must be 20+ characters', 'error');
     }
 }
 
 function editYear() {
     const years = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year', 'PhD'];
-    const yearList = years.map((y, i) => `${i+1}. ${y}`).join('\n');
-    const input = prompt(`Select year:\n\n${yearList}\n\nEnter year (e.g., 2nd Year):`, currentUser.year || '');
-    
+    const input = prompt(`Select year:\n${years.join('\n')}`, currentUser.year);
     if (input && years.includes(input)) {
         currentUser.year = input;
         saveToLocalStorage();
-        switchSettingsTab(null, 'account');
+        loadAccountTab();
         showToast('✅ Year updated!', 'success');
     } else if (input) {
-        showToast('❌ Invalid year selection', 'error');
+        showToast('❌ Invalid year', 'error');
     }
 }
 
 function deleteAccount() {
-    const confirm1 = confirm('⚠️ WARNING!\n\nAre you sure you want to DELETE your account?\n\nThis action CANNOT be undone!\n\nAll your data will be permanently deleted.');
-    if (!confirm1) return;
-    
-    const confirm2 = prompt('Type "DELETE" to confirm account deletion:', '');
-    if (confirm2 === 'DELETE') {
-        // Clear all data
+    if (!confirm('⚠️ Delete account permanently? This cannot be undone!')) return;
+    if (prompt('Type "DELETE" to confirm:', '') === 'DELETE') {
         localStorage.clear();
-        showToast('Account deleted. Goodbye! 😢', 'info');
-        
-        setTimeout(() => {
-            window.location.reload();
-        }, 2000);
-    } else if (confirm2) {
-        showToast('❌ Account deletion cancelled', 'info');
+        showToast('Account deleted 😢', 'info');
+        setTimeout(() => window.location.reload(), 2000);
     }
 }
 
-function showTerms() {
-    alert(`📜 TERMS OF SERVICE - CampusSoul
-
-1. ELIGIBILITY
-   - Must be IIT Guwahati student
-   - Must be 18+ years old
-   - Must use official IITG email
-
-2. USER CONDUCT
-   - Be respectful to all users
-   - No harassment or abuse
-   - No fake profiles or information
-   - Report violations immediately
-
-3. PRIVACY
-   - Your data is protected
-   - We don't share without consent
-   - You control your visibility
-
-4. SAFETY
-   - Meet in public places
-   - Trust your instincts
-   - Report suspicious behavior
-
-By using CampusSoul, you agree to these terms.`);
+function showTermsPopup() {
+    alert('📜 Terms of Service\n\n1. Be respectful\n2. No harassment\n3. Report violations\n4. Meet in public places\n\nBy using CampusSoul, you agree to these terms.');
 }
 
-function showPrivacyPolicy() {
-    alert(`🔒 PRIVACY POLICY - CampusSoul
-
-DATA COLLECTION:
-- Email, name, age, photos
-- Academic information
-- Usage statistics
-
-DATA USAGE:
-- Profile matching
-- Service improvement
-- Communication
-
-DATA PROTECTION:
-- Encrypted storage
-- No third-party sharing
-- You control visibility
-
-YOUR RIGHTS:
-- View your data
-- Edit your profile
-- Delete your account anytime
-
-Questions? Contact: support@campussoul.com`);
+function showPrivacyPopup() {
+    alert('🔒 Privacy Policy\n\nWe protect your data and never share without consent.\n\nYou control your visibility and can delete your account anytime.');
 }
 
-function showGuidelines() {
-    alert(`❤️ COMMUNITY GUIDELINES
-
-BE RESPECTFUL:
-✅ Treat everyone with kindness
-✅ Use appropriate language
-✅ Respect boundaries
-
-BE HONEST:
-✅ Use real photos
-✅ Be truthful about yourself
-✅ Don't catfish
-
-BE SAFE:
-✅ Meet in public places
-✅ Tell friends about meetings
-✅ Trust your instincts
-✅ Report suspicious behavior
-
-BE APPROPRIATE:
-✅ Keep conversations respectful
-✅ No harassment or abuse
-✅ No inappropriate content
-
-VIOLATIONS:
-❌ Harassment → Instant ban
-❌ Fake profiles → Account deletion
-❌ Inappropriate behavior → Reported
-
-Let's keep CampusSoul safe and fun! 💕`);
-}
-
-function contactSupport() {
-    const issue = prompt('📧 Contact Support\n\nDescribe your issue or feedback:');
-    if (issue && issue.trim()) {
-        // In real app, send to backend
-        console.log('Support request:', issue);
-        showToast('✅ Message sent to support team! We\'ll respond within 24 hours.', 'success');
-        
-        // Simulate email (in real app, use EmailJS or backend)
-        const supportEmail = 'support@campussoul.com';
-        const subject = 'Support Request - CampusSoul';
-        const body = `Issue: ${issue}\n\nUser: ${currentUser.email}\nName: ${currentUser.name}`;
-        
-        console.log('Email to:', supportEmail);
-        console.log('Subject:', subject);
-        console.log('Body:', body);
-    }
-}
-// ==================== PRIVACY SETTING FUNCTIONS ====================
-
-function togglePrivacySetting(setting, value) {
-    console.log('Privacy toggle:', setting, value);
-    
-    if (!currentUser.privacySettings) {
-        currentUser.privacySettings = {};
-    }
-    
-    currentUser.privacySettings[setting] = value;
-    saveToLocalStorage();
-    
-    const settingNames = {
-        showAge: 'Age visibility',
-        showBranch: 'Branch visibility',
-        showPhone: 'Phone visibility',
-        showOnlineStatus: 'Online status'
-    };
-    
-    const action = value ? 'enabled' : 'disabled';
-    showToast(`✅ ${settingNames[setting]} ${action}`, 'success');
-}
-
-function changeMessagePermissions(value) {
-    console.log('Message permission changed:', value);
-    
-    if (!currentUser.privacySettings) {
-        currentUser.privacySettings = {};
-    }
-    
-    currentUser.privacySettings.allowMessages = value;
-    saveToLocalStorage();
-    
-    const messages = {
-        everyone: 'Everyone can message you',
-        matches: 'Only matches can message you',
-        none: 'Messaging disabled'
-    };
-    
-    showToast(`✅ ${messages[value]}`, 'success');
-}
-
-function viewBlockedUsers() {
-    if (!appState.blockedUsers || appState.blockedUsers.length === 0) {
-        showToast('You haven\'t blocked anyone', 'info');
-    } else {
-        alert(`Blocked Users:\n\n${appState.blockedUsers.join('\n')}`);
-    }
-}
-
-// ==================== ABOUT SECTION FUNCTIONS ====================
-
-function calculateTotalLikes() {
-    return appState.matches.length + (appState.likes?.length || 0);
-}
-
-function showTermsOfService() {
-    const terms = `
-╔════════════════════════════════════════╗
-║     📜 TERMS OF SERVICE                ║
-║        CampusSoul - IIT Guwahati       ║
-╚════════════════════════════════════════╝
-
-1. ELIGIBILITY
-   • Must be an IIT Guwahati student
-   • Must be 18 years or older
-   • Must use official @iitg.ac.in email
-
-2. USER CONDUCT
-   ✓ Be respectful to all users
-   ✓ No harassment or abusive behavior
-   ✓ No fake profiles or false information
-   ✓ Report any violations immediately
-   ✗ Spam or advertising prohibited
-   ✗ Sharing explicit content prohibited
-
-3. ACCOUNT RESPONSIBILITIES
-   • You are responsible for your account
-   • Keep your password secure
-   • Don't share account access
-   • Update information when needed
-
-4. CONTENT OWNERSHIP
-   • You own your profile content
-   • You grant us license to display it
-   • We don't sell your personal data
-   • You can delete content anytime
-
-5. PRIVACY & SAFETY
-   • Your data is encrypted and secure
-   • We don't share without your consent
-   • You control your visibility settings
-   • Report suspicious behavior
-
-6. TERMINATION
-   • We may suspend accounts violating terms
-   • You can delete your account anytime
-   • Deleted data cannot be recovered
-
-7. DISCLAIMER
-   • Use at your own discretion
-   • We're not liable for user interactions
-   • Meet in public places for safety
-   • Trust your instincts
-
-8. CHANGES TO TERMS
-   • Terms may be updated periodically
-   • Continued use implies acceptance
-   • Check regularly for updates
-
-Last Updated: January 2026
-
-By using CampusSoul, you agree to these terms.
-
-Questions? Contact: support@campussoul.com
-    `;
-    
-    alert(terms);
-    console.log('Terms of Service displayed');
-}
-
-function showPrivacyPolicyPopup() {
-    const policy = `
-╔════════════════════════════════════════╗
-║     🔒 PRIVACY POLICY                  ║
-║        CampusSoul - IIT Guwahati       ║
-╚════════════════════════════════════════╝
-
-INFORMATION WE COLLECT:
-━━━━━━━━━━━━━━━━━━━━━━━━
-• Email address (@iitg.ac.in)
-• Name and age
-• Academic information (branch, year)
-• Profile photos
-• Bio and interests
-• Usage data and preferences
-
-HOW WE USE YOUR DATA:
-━━━━━━━━━━━━━━━━━━━━━━━━
-✓ Profile matching and discovery
-✓ Communication between users
-✓ Improving app functionality
-✓ Analytics and statistics
-✓ Security and fraud prevention
-
-DATA PROTECTION:
-━━━━━━━━━━━━━━━━━━━━━━━━
-🔐 All data is encrypted
-🔐 Secure storage practices
-🔐 Regular security audits
-🔐 No third-party data selling
-🔐 HTTPS encrypted connections
-
-YOUR PRIVACY CONTROLS:
-━━━━━━━━━━━━━━━━━━━━━━━━
-• Show/hide age
-• Show/hide branch
-• Show/hide phone number
-• Control online status
-• Manage message permissions
-• Block unwanted users
-
-DATA SHARING:
-━━━━━━━━━━━━━━━━━━━━━━━━
-✗ We NEVER sell your personal data
-✗ No sharing with third parties
-✓ Only visible to approved matches
-✓ You control what others see
-
-YOUR RIGHTS:
-━━━━━━━━━━━━━━━━━━━━━━━━
-✓ Access your data
-✓ Edit your profile
-✓ Download your data
-✓ Delete your account
-✓ Opt-out of communications
-
-DATA RETENTION:
-━━━━━━━━━━━━━━━━━━━━━━━━
-• Active accounts: Indefinitely
-• Deleted accounts: 30 days
-• Messages: Until deleted
-• Matches: Until unmatched
-
-COOKIES & TRACKING:
-━━━━━━━━━━━━━━━━━━━━━━━━
-• Essential cookies only
-• No third-party tracking
-• Local storage for preferences
-• No advertising cookies
-
-CONTACT US:
-━━━━━━━━━━━━━━━━━━━━━━━━
-Privacy concerns: privacy@campussoul.com
-Data requests: data@campussoul.com
-General support: support@campussoul.com
-
-Last Updated: January 2026
-
-We take your privacy seriously! 🔒
-    `;
-    
-    alert(policy);
-    console.log('Privacy Policy displayed');
-}
-
-function showCommunityGuidelines() {
-    const guidelines = `
-╔════════════════════════════════════════╗
-║     ❤️ COMMUNITY GUIDELINES            ║
-║        CampusSoul - IIT Guwahati       ║
-╚════════════════════════════════════════╝
-
-BE RESPECTFUL
-━━━━━━━━━━━━━━━━━━━━━━━━
-✅ Treat everyone with kindness
-✅ Use appropriate language
-✅ Respect boundaries and consent
-✅ Accept rejection gracefully
-❌ No harassment or bullying
-❌ No hate speech or discrimination
-
-BE HONEST
-━━━━━━━━━━━━━━━━━━━━━━━━
-✅ Use real, recent photos
-✅ Be truthful about yourself
-✅ Don't misrepresent your identity
-❌ No catfishing or fake profiles
-❌ No impersonation
-❌ No misleading information
-
-BE SAFE
-━━━━━━━━━━━━━━━━━━━━━━━━
-✅ Meet in public places
-✅ Tell friends about meetings
-✅ Trust your instincts
-✅ Report suspicious behavior
-✅ Protect personal information
-❌ Don't share financial info
-❌ Don't send money to anyone
-
-BE APPROPRIATE
-━━━━━━━━━━━━━━━━━━━━━━━━
-✅ Keep conversations respectful
-✅ Maintain appropriate boundaries
-✅ Respect privacy
-❌ No explicit content
-❌ No inappropriate requests
-❌ No spam or advertising
-
-PHOTO GUIDELINES
-━━━━━━━━━━━━━━━━━━━━━━━━
-✅ Clear face photos
-✅ Recent pictures (within 1 year)
-✅ Appropriate attire
-❌ No nudity or sexually explicit
-❌ No weapons or drugs
-❌ No group-only photos
-
-VIOLATIONS & CONSEQUENCES
-━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️ Warning - First minor offense
-🚫 Temporary Ban - Repeated offenses
-❌ Permanent Ban - Serious violations
-
-Instant Ban for:
-• Harassment or threats
-• Explicit content
-• Fake profiles
-• Underage users
-• Illegal activities
-
-REPORTING
-━━━━━━━━━━━━━━━━━━━━━━━━
-If you encounter:
-• Inappropriate behavior → Report
-• Fake profiles → Report
-• Harassment → Report + Block
-• Safety concerns → Contact support
-
-We review all reports within 24 hours.
-
-REMEMBER
-━━━━━━━━━━━━━━━━━━━━━━━━
-This is OUR community. Let's keep it:
-💕 Respectful
-🤝 Friendly
-🔒 Safe
-✨ Positive
-
-Together, we make CampusSoul better!
-
-Questions? support@campussoul.com
-    `;
-    
-    alert(guidelines);
-    console.log('Community Guidelines displayed');
-}
-
-function contactSupportTeam() {
-    const issue = prompt('📧 Contact Support\n\nPlease describe your issue or question:\n\n(We typically respond within 24 hours)');
-    
-    if (issue && issue.trim().length > 0) {
-        // Log for demonstration (in real app, send to backend)
-        console.log('Support Request:', {
-            user: currentUser.email,
-            name: currentUser.name,
-            issue: issue,
-            timestamp: new Date().toISOString()
-        });
-        
-        showToast('✅ Support request sent! We\'ll respond within 24 hours.', 'success');
-        
-        // Simulate email (for demo)
-        setTimeout(() => {
-            showToast('📧 Support team notified', 'info');
-        }, 1000);
-    } else if (issue !== null) {
-        showToast('❌ Please describe your issue', 'error');
-    }
-}
-
-function reportBugIssue() {
-    const bug = prompt('🐛 Report a Bug\n\nPlease describe:\n\n1. What happened?\n2. What did you expect?\n3. Steps to reproduce?');
-    
-    if (bug && bug.trim().length > 0) {
-        console.log('Bug Report:', {
-            user: currentUser.email,
-            bug: bug,
-            userAgent: navigator.userAgent,
-            timestamp: new Date().toISOString()
-        });
-        
-        showToast('✅ Bug report submitted! Thank you for helping us improve.', 'success');
-    } else if (bug !== null) {
-        showToast('❌ Please describe the bug', 'error');
-    }
-}
-
-function provideFeedback() {
-    const feedback = prompt('💬 Send Feedback\n\nWe\'d love to hear from you!\n\nWhat do you think about CampusSoul?\nAny suggestions for improvement?');
-    
-    if (feedback && feedback.trim().length > 0) {
-        console.log('User Feedback:', {
-            user: currentUser.email,
-            feedback: feedback,
-            timestamp: new Date().toISOString()
-        });
-        
-        showToast('✅ Thank you for your feedback! We appreciate it! 💕', 'success');
-        
-        // Fun response
-        setTimeout(() => {
-            showToast('Your input helps make CampusSoul better! 🚀', 'info');
-        }, 1500);
-    } else if (feedback !== null) {
-        showToast('❌ Please provide some feedback', 'error');
-    }
-}
-
-function shareApp() {
-    const shareText = `💕 Check out CampusSoul - IIT Guwahati's dating platform!\n\nFind study partners, make friends, and discover meaningful connections.\n\n🎓 Exclusively for IIT Guwahati students\n\nJoin now: ${window.location.href}`;
-    
-    // Try native share API
-    if (navigator.share) {
-        navigator.share({
-            title: 'CampusSoul - IIT Guwahati',
-            text: shareText,
-            url: window.location.href
-        }).then(() => {
-            showToast('✅ Thanks for sharing!', 'success');
-        }).catch((error) => {
-            console.log('Share cancelled', error);
-        });
-    } else {
-        // Fallback: Copy to clipboard
-        const textarea = document.createElement('textarea');
-        textarea.value = shareText;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        
-        showToast('✅ Link copied to clipboard! Share with friends!', 'success');
+function contactSupportNow() {
+    const message = prompt('Describe your issue:');
+    if (message) {
+        console.log('Support request:', message);
+        showToast('✅ Message sent to support!', 'success');
     }
 }
 
