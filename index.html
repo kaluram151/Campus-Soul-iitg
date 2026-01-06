@@ -651,11 +651,21 @@
                 <button class="btn btn-secondary btn-block" onclick="resetFilters()">Reset</button>
             </div>
         </div>
-    </div>
-    
+    </div> 
+    <!-- Settings Modal --> ← YE ADD KARO
+    <div id="settingsModal" class="modal">
+        <div class="modal-overlay" onclick="closeSettings()"></div>
+        <div class="modal-content modal-large">
+            <button class="modal-close" onclick="closeSettings()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="settingsContent"></div>
+        </div>
+    </div>   
     <!-- Toast Notification Container -->
     <div id="toastContainer"></div>
     
     <script src="script.js"></script>
 </body>
 </html>
+
