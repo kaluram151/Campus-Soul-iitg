@@ -1797,16 +1797,31 @@ function loadSettingsContent() {
     switchSettingsTab('account');
 }
 
-function switchSettingsTab(tabName) {
-    // Update active tab
-    document.querySelectorAll('.settings-tab').forEach(tab => {
+function switchSettingsTab(event, tabName) {
+    // Update active tab - FIXED VERSION
+    const allTabs = document.querySelectorAll('.settings-tab');
+    allTabs.forEach(tab => {
         tab.classList.remove('active');
     });
-    event.target.closest('.settings-tab').classList.add('active');
+    
+    // Add active class to clicked tab
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+    } else {
+        // If no event (first load), activate first tab
+        const firstTab = document.querySelector('.settings-tab');
+        if (firstTab) {
+            firstTab.classList.add('active');
+        }
+    }
     
     const container = document.getElementById('settingsTabContent');
-    if (!container) return;
+    if (!container) {
+        console.error('Settings tab content container not found');
+        return;
+    }
     
+    // Load content based on tab
     switch(tabName) {
         case 'account':
             container.innerHTML = getAccountSettingsHTML();
@@ -1823,8 +1838,11 @@ function switchSettingsTab(tabName) {
         case 'about':
             container.innerHTML = getAboutSettingsHTML();
             break;
+        default:
+            container.innerHTML = getAccountSettingsHTML();
     }
 }
+
 
 function getAccountSettingsHTML() {
     return `
@@ -2529,4 +2547,5 @@ setInterval(() => {
 
 console.log('✅ CampusSoul - IIT Guwahati Edition Ready!');
 console.log('🎓 All features loaded!');
+
 
