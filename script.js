@@ -1924,7 +1924,6 @@ function getAccountSettingsHTML() {
         </div>
     `;
 }
-
 function getPrivacySettingsHTML() {
     // Initialize privacy settings if not exist
     if (!currentUser.privacySettings) {
@@ -1954,7 +1953,7 @@ function getPrivacySettingsHTML() {
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" ${settings.showAge ? 'checked' : ''} 
-                           onchange="togglePrivacy('showAge', this.checked)">
+                           onchange="togglePrivacySetting('showAge', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
@@ -1966,7 +1965,7 @@ function getPrivacySettingsHTML() {
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" ${settings.showBranch ? 'checked' : ''} 
-                           onchange="togglePrivacy('showBranch', this.checked)">
+                           onchange="togglePrivacySetting('showBranch', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
@@ -1978,7 +1977,7 @@ function getPrivacySettingsHTML() {
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" ${settings.showPhone ? 'checked' : ''} 
-                           onchange="togglePrivacy('showPhone', this.checked)">
+                           onchange="togglePrivacySetting('showPhone', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
@@ -1990,7 +1989,7 @@ function getPrivacySettingsHTML() {
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" ${settings.showOnlineStatus ? 'checked' : ''} 
-                           onchange="togglePrivacy('showOnlineStatus', this.checked)">
+                           onchange="togglePrivacySetting('showOnlineStatus', this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
@@ -2004,7 +2003,7 @@ function getPrivacySettingsHTML() {
                     <strong>Message Permissions</strong>
                     <p>Control who can start conversations with you</p>
                 </div>
-                <select class="setting-select" onchange="changeMessagePermission(this.value)">
+                <select class="setting-select" onchange="changeMessagePermissions(this.value)">
                     <option value="everyone" ${settings.allowMessages === 'everyone' ? 'selected' : ''}>
                         Everyone
                     </option>
@@ -2021,110 +2020,101 @@ function getPrivacySettingsHTML() {
         <div class="settings-section">
             <h3><i class="fas fa-ban"></i> Blocked Users</h3>
             <p style="color:var(--text-secondary);">
-                ${appState.blockedUsers && appState.blockedUsers.length > 0 
-                    ? `You have blocked ${appState.blockedUsers.length} user(s)` 
-                    : 'You haven\'t blocked anyone yet.'}
+                You haven't blocked anyone yet.
             </p>
-        </div>
-    `;
-}
-
-function getNotificationSettingsHTML() {
-    // Initialize notification settings
-    if (!currentUser.notificationSettings) {
-        currentUser.notificationSettings = {
-            newMatches: true,
-            newMessages: true,
-            likes: true,
-            superLikes: true,
-            emailNotifications: true
-        };
-        saveToLocalStorage();
-    }
-    
-    const settings = currentUser.notificationSettings;
-    
-    return `
-        <div class="settings-section">
-            <h3><i class="fas fa-bell"></i> Push Notifications</h3>
-            <p style="color:var(--text-secondary); margin-bottom:20px;">
-                Manage your notification preferences
-            </p>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <strong>New Matches</strong>
-                    <p>Get notified when you get a new match</p>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" ${settings.newMatches ? 'checked' : ''} 
-                           onchange="toggleNotification('newMatches', this.checked)">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <strong>New Messages</strong>
-                    <p>Get notified about new messages</p>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" ${settings.newMessages ? 'checked' : ''} 
-                           onchange="toggleNotification('newMessages', this.checked)">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <strong>Likes</strong>
-                    <p>Get notified when someone likes you</p>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" ${settings.likes ? 'checked' : ''} 
-                           onchange="toggleNotification('likes', this.checked)">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <strong>Super Likes</strong>
-                    <p>Get notified when someone super likes you</p>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" ${settings.superLikes ? 'checked' : ''} 
-                           onchange="toggleNotification('superLikes', this.checked)">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-        </div>
-        
-        <div class="settings-section">
-            <h3><i class="fas fa-envelope"></i> Email Notifications</h3>
-            
-            <div class="setting-item">
-                <div class="setting-info">
-                    <strong>Weekly Digest</strong>
-                    <p>Receive weekly summary emails about your activity</p>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" ${settings.emailNotifications ? 'checked' : ''} 
-                           onchange="toggleNotification('emailNotifications', this.checked)">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-        </div>
-        
-        <div class="settings-section">
-            <button class="btn btn-secondary btn-block" onclick="testNotification()">
-                <i class="fas fa-bell"></i> Test Notification
+            <button class="btn btn-secondary" onclick="viewBlockedUsers()" style="margin-top:15px;">
+                <i class="fas fa-list"></i> View Blocked List
             </button>
         </div>
     `;
 }
-
-
+function getAboutSettingsHTML() {
+    return `
+        <div class="settings-section">
+            <div class="about-card">
+                <h1 style="font-size:3rem; margin-bottom:10px;">💕 CampusSoul</h1>
+                <p style="color:var(--primary-color); font-weight:600; margin-bottom:10px; font-size:1.1rem;">
+                    IIT Guwahati Dating Platform
+                </p>
+                <p style="color:var(--text-secondary); margin-bottom:20px; font-size:0.95rem;">
+                    Version 1.0.0 | January 2026
+                </p>
+                <div style="background:var(--bg-primary); padding:20px; border-radius:10px; margin:20px 0;">
+                    <p style="line-height:1.8; color:var(--text-primary);">
+                        CampusSoul is a platform designed exclusively for IIT Guwahati students 
+                        to find study partners, make meaningful friendships, and discover 
+                        romantic connections within the campus community.
+                    </p>
+                </div>
+                <div style="display:flex; gap:15px; justify-content:center; margin-top:20px;">
+                    <div style="text-align:center;">
+                        <div style="font-size:2rem; color:var(--primary-color);">
+                            ${students.length}+
+                        </div>
+                        <div style="color:var(--text-secondary); font-size:0.85rem;">Students</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:2rem; color:var(--primary-color);">
+                            ${appState.matches.length}
+                        </div>
+                        <div style="color:var(--text-secondary); font-size:0.85rem;">Your Matches</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:2rem; color:var(--primary-color);">
+                            ${calculateTotalLikes()}
+                        </div>
+                        <div style="color:var(--text-secondary); font-size:0.85rem;">Connections</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h3><i class="fas fa-book"></i> Legal & Policies</h3>
+            
+            <button class="btn btn-secondary btn-block" onclick="showTermsOfService()" style="margin-bottom:12px;">
+                <i class="fas fa-file-contract"></i> Terms of Service
+            </button>
+            
+            <button class="btn btn-secondary btn-block" onclick="showPrivacyPolicyPopup()" style="margin-bottom:12px;">
+                <i class="fas fa-shield-alt"></i> Privacy Policy
+            </button>
+            
+            <button class="btn btn-secondary btn-block" onclick="showCommunityGuidelines()">
+                <i class="fas fa-list-ul"></i> Community Guidelines
+            </button>
+        </div>
+        
+        <div class="settings-section">
+            <h3><i class="fas fa-headset"></i> Help & Support</h3>
+            
+            <button class="btn btn-secondary btn-block" onclick="contactSupportTeam()" style="margin-bottom:12px;">
+                <i class="fas fa-envelope"></i> Contact Support
+            </button>
+            
+            <button class="btn btn-secondary btn-block" onclick="reportBugIssue()" style="margin-bottom:12px;">
+                <i class="fas fa-bug"></i> Report a Bug
+            </button>
+            
+            <button class="btn btn-secondary btn-block" onclick="provideFeedback()">
+                <i class="fas fa-comment"></i> Send Feedback
+            </button>
+        </div>
+        
+        <div class="settings-section">
+            <h3><i class="fas fa-share-alt"></i> Share CampusSoul</h3>
+            
+            <button class="btn btn-primary btn-block" onclick="shareApp()">
+                <i class="fas fa-share"></i> Share with Friends
+            </button>
+        </div>
+        
+        <div style="text-align:center; margin-top:30px; color:var(--text-secondary); font-size:0.9rem;">
+            <p>Made with 💕 for IIT Guwahati</p>
+            <p style="margin-top:10px;">© 2026 CampusSoul. All rights reserved.</p>
+        </div>
+    `;
+}
 function getPreferencesSettingsHTML() {
     return `
         <div class="settings-section">
@@ -2904,22 +2894,390 @@ function contactSupport() {
         console.log('Body:', body);
     }
 }
+// ==================== PRIVACY SETTING FUNCTIONS ====================
 
-
-// ==================== APP INITIALIZATION ====================
-console.log('%c💕 CampusSoul', 'color: #ff1493; font-size: 20px; font-weight: bold;');
-console.log('%c✅ All systems ready!', 'color: #00cc00; font-size: 14px;');
-
-// Verify all core functions loaded
-const coreFeatures = ['sendOTP', 'loadCard', 'openSettings', 'openFilters', 'openChat'];
-const allLoaded = coreFeatures.every(fn => typeof window[fn] === 'function');
-
-if (allLoaded) {
-    console.log('🎯 All features loaded successfully!');
-} else {
-    console.warn('⚠️ Some features may not be loaded');
+function togglePrivacySetting(setting, value) {
+    console.log('Privacy toggle:', setting, value);
+    
+    if (!currentUser.privacySettings) {
+        currentUser.privacySettings = {};
+    }
+    
+    currentUser.privacySettings[setting] = value;
+    saveToLocalStorage();
+    
+    const settingNames = {
+        showAge: 'Age visibility',
+        showBranch: 'Branch visibility',
+        showPhone: 'Phone visibility',
+        showOnlineStatus: 'Online status'
+    };
+    
+    const action = value ? 'enabled' : 'disabled';
+    showToast(`✅ ${settingNames[setting]} ${action}`, 'success');
 }
 
-// Show version
-console.log('📌 Version: 1.0.0');
-console.log('🎓 Made for IIT Guwahati');
+function changeMessagePermissions(value) {
+    console.log('Message permission changed:', value);
+    
+    if (!currentUser.privacySettings) {
+        currentUser.privacySettings = {};
+    }
+    
+    currentUser.privacySettings.allowMessages = value;
+    saveToLocalStorage();
+    
+    const messages = {
+        everyone: 'Everyone can message you',
+        matches: 'Only matches can message you',
+        none: 'Messaging disabled'
+    };
+    
+    showToast(`✅ ${messages[value]}`, 'success');
+}
+
+function viewBlockedUsers() {
+    if (!appState.blockedUsers || appState.blockedUsers.length === 0) {
+        showToast('You haven\'t blocked anyone', 'info');
+    } else {
+        alert(`Blocked Users:\n\n${appState.blockedUsers.join('\n')}`);
+    }
+}
+
+// ==================== ABOUT SECTION FUNCTIONS ====================
+
+function calculateTotalLikes() {
+    return appState.matches.length + (appState.likes?.length || 0);
+}
+
+function showTermsOfService() {
+    const terms = `
+╔════════════════════════════════════════╗
+║     📜 TERMS OF SERVICE                ║
+║        CampusSoul - IIT Guwahati       ║
+╚════════════════════════════════════════╝
+
+1. ELIGIBILITY
+   • Must be an IIT Guwahati student
+   • Must be 18 years or older
+   • Must use official @iitg.ac.in email
+
+2. USER CONDUCT
+   ✓ Be respectful to all users
+   ✓ No harassment or abusive behavior
+   ✓ No fake profiles or false information
+   ✓ Report any violations immediately
+   ✗ Spam or advertising prohibited
+   ✗ Sharing explicit content prohibited
+
+3. ACCOUNT RESPONSIBILITIES
+   • You are responsible for your account
+   • Keep your password secure
+   • Don't share account access
+   • Update information when needed
+
+4. CONTENT OWNERSHIP
+   • You own your profile content
+   • You grant us license to display it
+   • We don't sell your personal data
+   • You can delete content anytime
+
+5. PRIVACY & SAFETY
+   • Your data is encrypted and secure
+   • We don't share without your consent
+   • You control your visibility settings
+   • Report suspicious behavior
+
+6. TERMINATION
+   • We may suspend accounts violating terms
+   • You can delete your account anytime
+   • Deleted data cannot be recovered
+
+7. DISCLAIMER
+   • Use at your own discretion
+   • We're not liable for user interactions
+   • Meet in public places for safety
+   • Trust your instincts
+
+8. CHANGES TO TERMS
+   • Terms may be updated periodically
+   • Continued use implies acceptance
+   • Check regularly for updates
+
+Last Updated: January 2026
+
+By using CampusSoul, you agree to these terms.
+
+Questions? Contact: support@campussoul.com
+    `;
+    
+    alert(terms);
+    console.log('Terms of Service displayed');
+}
+
+function showPrivacyPolicyPopup() {
+    const policy = `
+╔════════════════════════════════════════╗
+║     🔒 PRIVACY POLICY                  ║
+║        CampusSoul - IIT Guwahati       ║
+╚════════════════════════════════════════╝
+
+INFORMATION WE COLLECT:
+━━━━━━━━━━━━━━━━━━━━━━━━
+• Email address (@iitg.ac.in)
+• Name and age
+• Academic information (branch, year)
+• Profile photos
+• Bio and interests
+• Usage data and preferences
+
+HOW WE USE YOUR DATA:
+━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Profile matching and discovery
+✓ Communication between users
+✓ Improving app functionality
+✓ Analytics and statistics
+✓ Security and fraud prevention
+
+DATA PROTECTION:
+━━━━━━━━━━━━━━━━━━━━━━━━
+🔐 All data is encrypted
+🔐 Secure storage practices
+🔐 Regular security audits
+🔐 No third-party data selling
+🔐 HTTPS encrypted connections
+
+YOUR PRIVACY CONTROLS:
+━━━━━━━━━━━━━━━━━━━━━━━━
+• Show/hide age
+• Show/hide branch
+• Show/hide phone number
+• Control online status
+• Manage message permissions
+• Block unwanted users
+
+DATA SHARING:
+━━━━━━━━━━━━━━━━━━━━━━━━
+✗ We NEVER sell your personal data
+✗ No sharing with third parties
+✓ Only visible to approved matches
+✓ You control what others see
+
+YOUR RIGHTS:
+━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Access your data
+✓ Edit your profile
+✓ Download your data
+✓ Delete your account
+✓ Opt-out of communications
+
+DATA RETENTION:
+━━━━━━━━━━━━━━━━━━━━━━━━
+• Active accounts: Indefinitely
+• Deleted accounts: 30 days
+• Messages: Until deleted
+• Matches: Until unmatched
+
+COOKIES & TRACKING:
+━━━━━━━━━━━━━━━━━━━━━━━━
+• Essential cookies only
+• No third-party tracking
+• Local storage for preferences
+• No advertising cookies
+
+CONTACT US:
+━━━━━━━━━━━━━━━━━━━━━━━━
+Privacy concerns: privacy@campussoul.com
+Data requests: data@campussoul.com
+General support: support@campussoul.com
+
+Last Updated: January 2026
+
+We take your privacy seriously! 🔒
+    `;
+    
+    alert(policy);
+    console.log('Privacy Policy displayed');
+}
+
+function showCommunityGuidelines() {
+    const guidelines = `
+╔════════════════════════════════════════╗
+║     ❤️ COMMUNITY GUIDELINES            ║
+║        CampusSoul - IIT Guwahati       ║
+╚════════════════════════════════════════╝
+
+BE RESPECTFUL
+━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Treat everyone with kindness
+✅ Use appropriate language
+✅ Respect boundaries and consent
+✅ Accept rejection gracefully
+❌ No harassment or bullying
+❌ No hate speech or discrimination
+
+BE HONEST
+━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Use real, recent photos
+✅ Be truthful about yourself
+✅ Don't misrepresent your identity
+❌ No catfishing or fake profiles
+❌ No impersonation
+❌ No misleading information
+
+BE SAFE
+━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Meet in public places
+✅ Tell friends about meetings
+✅ Trust your instincts
+✅ Report suspicious behavior
+✅ Protect personal information
+❌ Don't share financial info
+❌ Don't send money to anyone
+
+BE APPROPRIATE
+━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Keep conversations respectful
+✅ Maintain appropriate boundaries
+✅ Respect privacy
+❌ No explicit content
+❌ No inappropriate requests
+❌ No spam or advertising
+
+PHOTO GUIDELINES
+━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Clear face photos
+✅ Recent pictures (within 1 year)
+✅ Appropriate attire
+❌ No nudity or sexually explicit
+❌ No weapons or drugs
+❌ No group-only photos
+
+VIOLATIONS & CONSEQUENCES
+━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ Warning - First minor offense
+🚫 Temporary Ban - Repeated offenses
+❌ Permanent Ban - Serious violations
+
+Instant Ban for:
+• Harassment or threats
+• Explicit content
+• Fake profiles
+• Underage users
+• Illegal activities
+
+REPORTING
+━━━━━━━━━━━━━━━━━━━━━━━━
+If you encounter:
+• Inappropriate behavior → Report
+• Fake profiles → Report
+• Harassment → Report + Block
+• Safety concerns → Contact support
+
+We review all reports within 24 hours.
+
+REMEMBER
+━━━━━━━━━━━━━━━━━━━━━━━━
+This is OUR community. Let's keep it:
+💕 Respectful
+🤝 Friendly
+🔒 Safe
+✨ Positive
+
+Together, we make CampusSoul better!
+
+Questions? support@campussoul.com
+    `;
+    
+    alert(guidelines);
+    console.log('Community Guidelines displayed');
+}
+
+function contactSupportTeam() {
+    const issue = prompt('📧 Contact Support\n\nPlease describe your issue or question:\n\n(We typically respond within 24 hours)');
+    
+    if (issue && issue.trim().length > 0) {
+        // Log for demonstration (in real app, send to backend)
+        console.log('Support Request:', {
+            user: currentUser.email,
+            name: currentUser.name,
+            issue: issue,
+            timestamp: new Date().toISOString()
+        });
+        
+        showToast('✅ Support request sent! We\'ll respond within 24 hours.', 'success');
+        
+        // Simulate email (for demo)
+        setTimeout(() => {
+            showToast('📧 Support team notified', 'info');
+        }, 1000);
+    } else if (issue !== null) {
+        showToast('❌ Please describe your issue', 'error');
+    }
+}
+
+function reportBugIssue() {
+    const bug = prompt('🐛 Report a Bug\n\nPlease describe:\n\n1. What happened?\n2. What did you expect?\n3. Steps to reproduce?');
+    
+    if (bug && bug.trim().length > 0) {
+        console.log('Bug Report:', {
+            user: currentUser.email,
+            bug: bug,
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+        });
+        
+        showToast('✅ Bug report submitted! Thank you for helping us improve.', 'success');
+    } else if (bug !== null) {
+        showToast('❌ Please describe the bug', 'error');
+    }
+}
+
+function provideFeedback() {
+    const feedback = prompt('💬 Send Feedback\n\nWe\'d love to hear from you!\n\nWhat do you think about CampusSoul?\nAny suggestions for improvement?');
+    
+    if (feedback && feedback.trim().length > 0) {
+        console.log('User Feedback:', {
+            user: currentUser.email,
+            feedback: feedback,
+            timestamp: new Date().toISOString()
+        });
+        
+        showToast('✅ Thank you for your feedback! We appreciate it! 💕', 'success');
+        
+        // Fun response
+        setTimeout(() => {
+            showToast('Your input helps make CampusSoul better! 🚀', 'info');
+        }, 1500);
+    } else if (feedback !== null) {
+        showToast('❌ Please provide some feedback', 'error');
+    }
+}
+
+function shareApp() {
+    const shareText = `💕 Check out CampusSoul - IIT Guwahati's dating platform!\n\nFind study partners, make friends, and discover meaningful connections.\n\n🎓 Exclusively for IIT Guwahati students\n\nJoin now: ${window.location.href}`;
+    
+    // Try native share API
+    if (navigator.share) {
+        navigator.share({
+            title: 'CampusSoul - IIT Guwahati',
+            text: shareText,
+            url: window.location.href
+        }).then(() => {
+            showToast('✅ Thanks for sharing!', 'success');
+        }).catch((error) => {
+            console.log('Share cancelled', error);
+        });
+    } else {
+        // Fallback: Copy to clipboard
+        const textarea = document.createElement('textarea');
+        textarea.value = shareText;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        
+        showToast('✅ Link copied to clipboard! Share with friends!', 'success');
+    }
+}
+
