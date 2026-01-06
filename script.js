@@ -1731,9 +1731,577 @@ function resetFilters() {
 }
 
 // ==================== SETTINGS & UTILS ====================
+// ==================== SETTINGS MODAL ====================
 function openSettings() {
-    showToast('Settings coming soon! ⚙️', 'info');
+    const modal = document.getElementById('settingsModal') || createSettingsModal();
+    loadSettingsContent();
+    modal.classList.add('active');
 }
+
+function closeSettings() {
+    const modal = document.getElementById('settingsModal');
+    if (modal) modal.classList.remove('active');
+}
+
+function createSettingsModal() {
+    const modal = document.createElement('div');
+    modal.id = 'settingsModal';
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-overlay" onclick="closeSettings()"></div>
+        <div class="modal-content modal-large">
+            <button class="modal-close" onclick="closeSettings()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="settingsContent"></div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    return modal;
+}
+
+function loadSettingsContent() {
+    const container = document.getElementById('settingsContent');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <h2 style="margin-bottom:30px; color:var(--primary-color);">
+            <i class="fas fa-cog"></i> Settings
+        </h2>
+        
+        <!-- Tabs -->
+        <div class="settings-tabs">
+            <button class="settings-tab active" onclick="switchSettingsTab('account')">
+                <i class="fas fa-user"></i> Account
+            </button>
+            <button class="settings-tab" onclick="switchSettingsTab('privacy')">
+                <i class="fas fa-lock"></i> Privacy
+            </button>
+            <button class="settings-tab" onclick="switchSettingsTab('notifications')">
+                <i class="fas fa-bell"></i> Notifications
+            </button>
+            <button class="settings-tab" onclick="switchSettingsTab('preferences')">
+                <i class="fas fa-sliders-h"></i> Preferences
+            </button>
+            <button class="settings-tab" onclick="switchSettingsTab('about')">
+                <i class="fas fa-info-circle"></i> About
+            </button>
+        </div>
+        
+        <!-- Settings Content -->
+        <div class="settings-content-area">
+            <div id="settingsTabContent"></div>
+        </div>
+    `;
+    
+    switchSettingsTab('account');
+}
+
+function switchSettingsTab(tabName) {
+    // Update active tab
+    document.querySelectorAll('.settings-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    event.target.closest('.settings-tab').classList.add('active');
+    
+    const container = document.getElementById('settingsTabContent');
+    if (!container) return;
+    
+    switch(tabName) {
+        case 'account':
+            container.innerHTML = getAccountSettingsHTML();
+            break;
+        case 'privacy':
+            container.innerHTML = getPrivacySettingsHTML();
+            break;
+        case 'notifications':
+            container.innerHTML = getNotificationSettingsHTML();
+            break;
+        case 'preferences':
+            container.innerHTML = getPreferencesSettingsHTML();
+            break;
+        case 'about':
+            container.innerHTML = getAboutSettingsHTML();
+            break;
+    }
+}
+
+function getAccountSettingsHTML() {
+    return `
+        <div class="settings-section">
+            <h3><i class="fas fa-user-edit"></i> Account Information</h3>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Email</strong>
+                    <p>${currentUser.email}</p>
+                </div>
+                <span class="badge-verified"><i class="fas fa-check-circle"></i> Verified</span>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Name</strong>
+                    <p>${currentUser.name}</p>
+                </div>
+                <button class="btn-edit" onclick="editName()">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Phone Number</strong>
+                    <p>${currentUser.phone || 'Not added'}</p>
+                </div>
+                <button class="btn-edit" onclick="editPhone()">
+                    <i class="fas fa-edit"></i> ${currentUser.phone ? 'Edit' : 'Add'}
+                </button>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Bio</strong>
+                    <p>${currentUser.bio}</p>
+                </div>
+                <button class="btn-edit" onclick="editBio()">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h3><i class="fas fa-graduation-cap"></i> Academic Information</h3>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Discipline</strong>
+                    <p>${currentUser.discipline}</p>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Branch</strong>
+                    <p>${currentUser.branch}</p>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Year</strong>
+                    <p>${currentUser.year}</p>
+                </div>
+                <button class="btn-edit" onclick="editYear()">
+                    <i class="fas fa-edit"></i> Update
+                </button>
+            </div>
+        </div>
+        
+        <div class="settings-section danger-zone">
+            <h3><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
+            
+            <button class="btn btn-secondary btn-block" onclick="deleteAccount()">
+                <i class="fas fa-trash"></i> Delete Account
+            </button>
+        </div>
+    `;
+}
+
+function getPrivacySettingsHTML() {
+    const settings = currentUser.privacySettings || {
+        showAge: true,
+        showBranch: true,
+        showPhone: false,
+        showOnlineStatus: true,
+        allowMessages: true
+    };
+    
+    return `
+        <div class="settings-section">
+            <h3><i class="fas fa-eye"></i> Profile Visibility</h3>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Show Age</strong>
+                    <p>Display your age on your profile</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${settings.showAge ? 'checked' : ''} 
+                           onchange="updatePrivacySetting('showAge', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Show Branch</strong>
+                    <p>Display your branch/department</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${settings.showBranch ? 'checked' : ''} 
+                           onchange="updatePrivacySetting('showBranch', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Show Phone Number</strong>
+                    <p>Allow matches to see your phone number</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${settings.showPhone ? 'checked' : ''} 
+                           onchange="updatePrivacySetting('showPhone', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Show Online Status</strong>
+                    <p>Let others see when you're active</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${settings.showOnlineStatus ? 'checked' : ''} 
+                           onchange="updatePrivacySetting('showOnlineStatus', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h3><i class="fas fa-user-shield"></i> Who Can...</h3>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Send You Messages</strong>
+                    <p>Control who can start conversations</p>
+                </div>
+                <select class="setting-select" onchange="updatePrivacySetting('allowMessages', this.value)">
+                    <option value="everyone" ${settings.allowMessages === 'everyone' ? 'selected' : ''}>
+                        Everyone
+                    </option>
+                    <option value="matches" ${settings.allowMessages === 'matches' ? 'selected' : ''}>
+                        Only Matches
+                    </option>
+                    <option value="none" ${settings.allowMessages === 'none' ? 'selected' : ''}>
+                        No One
+                    </option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h3><i class="fas fa-ban"></i> Blocked Users</h3>
+            <p style="color:var(--text-secondary);">You haven't blocked anyone yet.</p>
+        </div>
+    `;
+}
+
+function getNotificationSettingsHTML() {
+    const settings = currentUser.notificationSettings || {
+        newMatches: true,
+        newMessages: true,
+        likes: true,
+        superLikes: true,
+        email: true
+    };
+    
+    return `
+        <div class="settings-section">
+            <h3><i class="fas fa-bell"></i> Push Notifications</h3>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>New Matches</strong>
+                    <p>Get notified when you get a new match</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${settings.newMatches ? 'checked' : ''} 
+                           onchange="updateNotificationSetting('newMatches', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>New Messages</strong>
+                    <p>Get notified about new messages</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${settings.newMessages ? 'checked' : ''} 
+                           onchange="updateNotificationSetting('newMessages', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Likes</strong>
+                    <p>Get notified when someone likes you</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${settings.likes ? 'checked' : ''} 
+                           onchange="updateNotificationSetting('likes', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Super Likes</strong>
+                    <p>Get notified when someone super likes you</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${settings.superLikes ? 'checked' : ''} 
+                           onchange="updateNotificationSetting('superLikes', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h3><i class="fas fa-envelope"></i> Email Notifications</h3>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Email Updates</strong>
+                    <p>Receive weekly digest emails</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${settings.email ? 'checked' : ''} 
+                           onchange="updateNotificationSetting('email', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+    `;
+}
+
+function getPreferencesSettingsHTML() {
+    return `
+        <div class="settings-section">
+            <h3><i class="fas fa-heart"></i> Discovery Preferences</h3>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Show Me</strong>
+                    <p>Who would you like to see?</p>
+                </div>
+                <select class="setting-select" onchange="updatePreference('gender', this.value)">
+                    <option value="Everyone">Everyone</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Distance</strong>
+                    <p>Maximum distance: ${appState.filters.distance} km</p>
+                </div>
+                <input type="range" min="1" max="50" value="${appState.filters.distance}" 
+                       class="setting-range" oninput="updateDistance(this.value)">
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Age Range</strong>
+                    <p>${appState.filters.ageMin} - ${appState.filters.ageMax} years</p>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <input type="number" min="18" max="35" value="${appState.filters.ageMin}" 
+                           class="setting-input" onchange="updateAgeMin(this.value)">
+                    <span style="align-self:center;">to</span>
+                    <input type="number" min="18" max="35" value="${appState.filters.ageMax}" 
+                           class="setting-input" onchange="updateAgeMax(this.value)">
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h3><i class="fas fa-filter"></i> Quick Filters</h3>
+            
+            <button class="btn btn-secondary btn-block" onclick="openFilters()">
+                <i class="fas fa-sliders-h"></i> Advanced Filters
+            </button>
+        </div>
+    `;
+}
+
+function getAboutSettingsHTML() {
+    return `
+        <div class="settings-section">
+            <h3><i class="fas fa-info-circle"></i> About CampusSoul</h3>
+            
+            <div class="about-card">
+                <h1 style="font-size:3rem; margin-bottom:10px;">💕 CampusSoul</h1>
+                <p style="color:var(--primary-color); font-weight:600; margin-bottom:20px;">
+                    IIT Guwahati Dating Platform
+                </p>
+                <p style="color:var(--text-secondary); margin-bottom:20px;">
+                    Version 1.0.0
+                </p>
+                <p style="line-height:1.8;">
+                    CampusSoul is a platform for IIT Guwahati students to find study partners, 
+                    friends, and meaningful connections within the campus community.
+                </p>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h3><i class="fas fa-book"></i> Legal</h3>
+            
+            <button class="btn btn-secondary btn-block" onclick="showTerms()">
+                <i class="fas fa-file-contract"></i> Terms of Service
+            </button>
+            
+            <button class="btn btn-secondary btn-block" onclick="showPrivacyPolicy()">
+                <i class="fas fa-shield-alt"></i> Privacy Policy
+            </button>
+            
+            <button class="btn btn-secondary btn-block" onclick="showGuidelines()">
+                <i class="fas fa-list-ul"></i> Community Guidelines
+            </button>
+        </div>
+        
+        <div class="settings-section">
+            <h3><i class="fas fa-headset"></i> Support</h3>
+            
+            <button class="btn btn-secondary btn-block" onclick="contactSupport()">
+                <i class="fas fa-envelope"></i> Contact Support
+            </button>
+            
+            <button class="btn btn-secondary btn-block" onclick="reportBug()">
+                <i class="fas fa-bug"></i> Report a Bug
+            </button>
+        </div>
+    `;
+}
+
+// Update functions
+function updatePrivacySetting(setting, value) {
+    if (!currentUser.privacySettings) {
+        currentUser.privacySettings = {};
+    }
+    currentUser.privacySettings[setting] = value;
+    saveToLocalStorage();
+    showToast('Privacy setting updated ✅', 'success');
+}
+
+function updateNotificationSetting(setting, value) {
+    if (!currentUser.notificationSettings) {
+        currentUser.notificationSettings = {};
+    }
+    currentUser.notificationSettings[setting] = value;
+    saveToLocalStorage();
+    showToast('Notification setting updated ✅', 'success');
+}
+
+function updatePreference(key, value) {
+    appState.filters[key] = value;
+    saveToLocalStorage();
+    showToast('Preference updated ✅', 'success');
+}
+
+function updateDistance(value) {
+    appState.filters.distance = parseInt(value);
+    document.querySelector('.setting-info p').textContent = `Maximum distance: ${value} km`;
+    saveToLocalStorage();
+}
+
+function updateAgeMin(value) {
+    appState.filters.ageMin = parseInt(value);
+    saveToLocalStorage();
+}
+
+function updateAgeMax(value) {
+    appState.filters.ageMax = parseInt(value);
+    saveToLocalStorage();
+}
+
+// Edit functions
+function editName() {
+    const newName = prompt('Enter new name:', currentUser.name);
+    if (newName && newName.trim()) {
+        currentUser.name = newName.trim();
+        saveToLocalStorage();
+        loadSettingsContent();
+        showToast('Name updated! ✅', 'success');
+    }
+}
+
+function editPhone() {
+    const newPhone = prompt('Enter phone number (10 digits):', currentUser.phone || '');
+    if (newPhone && /^\d{10}$/.test(newPhone)) {
+        currentUser.phone = newPhone;
+        saveToLocalStorage();
+        loadSettingsContent();
+        showToast('Phone number updated! ✅', 'success');
+    } else if (newPhone) {
+        showToast('Invalid phone number!', 'error');
+    }
+}
+
+function editBio() {
+    const newBio = prompt('Update your bio:', currentUser.bio);
+    if (newBio && newBio.trim().length >= 20) {
+        currentUser.bio = newBio.trim();
+        saveToLocalStorage();
+        loadSettingsContent();
+        showToast('Bio updated! ✅', 'success');
+    } else if (newBio) {
+        showToast('Bio must be at least 20 characters!', 'error');
+    }
+}
+
+function editYear() {
+    const years = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year'];
+    const newYear = prompt(`Enter year (${years.join(', ')}):`, currentUser.year);
+    if (newYear && years.includes(newYear)) {
+        currentUser.year = newYear;
+        saveToLocalStorage();
+        loadSettingsContent();
+        showToast('Year updated! ✅', 'success');
+    } else if (newYear) {
+        showToast('Invalid year!', 'error');
+    }
+}
+
+function deleteAccount() {
+    const confirm1 = confirm('⚠️ Are you sure you want to delete your account? This cannot be undone!');
+    if (!confirm1) return;
+    
+    const confirm2 = confirm('❗ Final confirmation: Delete account permanently?');
+    if (!confirm2) return;
+    
+    // Clear all data
+    localStorage.clear();
+    showToast('Account deleted. We\'re sad to see you go 😢', 'info');
+    setTimeout(() => {
+        window.location.reload();
+    }, 2000);
+}
+
+function showTerms() {
+    alert('Terms of Service:\n\n1. Be respectful to all users\n2. No harassment or abuse\n3. Verify your identity\n4. Report violations\n5. Use for educational purposes');
+}
+
+function showPrivacyPolicy() {
+    alert('Privacy Policy:\n\nWe protect your data and privacy. Your information is stored securely and never shared without consent.');
+}
+
+function showGuidelines() {
+    alert('Community Guidelines:\n\n1. Be kind and respectful\n2. No fake profiles\n3. Report suspicious behavior\n4. Keep conversations appropriate\n5. Meet in public places');
+}
+
+function contactSupport() {
+    const email = 'support@campussoul.com';
+    const subject = 'Support Request';
+    window.location.href = `mailto:${email}?subject=${subject}`;
+}
+
 
 function openNotifications() {
     showToast(`You have ${notifications.length} notifications`, 'info');
@@ -1961,3 +2529,4 @@ setInterval(() => {
 
 console.log('✅ CampusSoul - IIT Guwahati Edition Ready!');
 console.log('🎓 All features loaded!');
+
